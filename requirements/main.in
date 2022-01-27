@@ -1,0 +1,17 @@
+# Editable runtime dependencies (equivalent to install_requires)
+# Add direct runtime dependencies here, as well as implicit dependencies
+# with constrained versions.
+#
+# After editing, update requirements/main.txt by running:
+#     make update-deps
+
+# prevent a resolution conflict by preventing h11 0.13.0
+# uvicorn (many verisons) gets 0.13.0, but httpcore 0.14.5 demands h11 0.12.0
+h11==0.12.0
+asyncpg~=0.25
+astropy~=5.0
+fastapi<1
+importlib_metadata~=4.10
+sqlalchemy~=1.4, <1.5
+structlog~=21.5
+uvicorn~=0.17.1

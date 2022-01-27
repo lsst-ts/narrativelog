@@ -1,0 +1,16 @@
+# Editable development dependencies
+# Add direct development, test, and documentation dependencies here, as well
+# as implicit dev dependencies with constrained versions.
+#
+# After editing, update requirements/dev.txt by running:
+#     make update-deps
+
+click~=8.0
+black==21.1.0
+coverage[toml]~=6.3
+flake8~=4.0
+httpx~=0.22
+mypy==0.931
+pre-commit~=2.17
+pytest~=6.2
+testing.postgresql~=1.3
