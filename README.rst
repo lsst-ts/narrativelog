@@ -1,8 +1,9 @@
-############
-Exposure Log
-############
+#############
+Narrative Log
+#############
 
-Narrative log is a REST web service to create and manage log messages that are associated with a particular exposure.
+Narrative log is a REST web service to create and manage operator-generated log messages.
+(See the exposure log service for operator-generated log messages associated with a particular exposure.)
 
 The service runs at _address_:8080/narrativelog
 and OpenAPI docs are available at _address_:8080/narrativelog/docs.
@@ -17,14 +18,11 @@ Configuration
 The service is configured via the following environment variables;
 All are optional except the few marked "(required)":
 
-* ``BUTLER_URI_1`` (required): URI to an butler data repository, which is only read.
-  Note that Exposure Log only reads the registry, so the actual data files are optional.
-* ``BUTLER_URI_2``: URI to a second, optional, data repository, which is searched after the first one.
-* ``narrativelog_DB_USER``: narrativelog database user name: default="narrativelog".
-* ``narrativelog_DB_PASSWORD``: narrativelog database password; default="".
-* ``narrativelog_DB_HOST``: narrativelog database server host; default="localhost".
-* ``narrativelog_DB_PORT``: narrativelog database server port; default="5432".
-* ``narrativelog_DB_DATABASE``: narrativelog database name; default="narrativelog".
+* ``NARRATIVELOG_DB_USER``: narrativelog database user name: default="narrativelog".
+* ``NARRATIVELOG_DB_PASSWORD``: narrativelog database password; default="".
+* ``NARRATIVELOG_DB_HOST``: narrativelog database server host; default="localhost".
+* ``NARRATIVELOG_DB_PORT``: narrativelog database server port; default="5432".
+* ``NARRATIVELOG_DB_DATABASE``: narrativelog database name; default="narrativelog".
 * ``SITE_ID`` (required): Where this is deployed, e.g. "summit" or "base".
 
 Developer Guide
@@ -53,6 +51,13 @@ If that fails with a complaint about missing packages try rebuilding your enviro
 
   tox -r
 
+To run unit tests manually (which has much less overhead than running tox),
+or to run the service, you must first activate tox's virtual environment.
+Warning: if you run unit tests this way, it tests the library code most recently built by tox;
+changes to library are ignored until you run tox again::
+
+  source .tox/py38/bin/activate
+
 To lint the code (run it twice if it reports a linting error the first time)::
 
   tox -e lint
@@ -61,23 +66,23 @@ To check type annotation with mypy::
 
   tox -e typing
 
-To run the service, first set the configuration environment variables, then::
+To run the service, you will need a running Postgres server with a user named ``narrativelog``
+that has permission to create tables and rows, and a database also named ``narrativelog``.
+With the Postgres server running, for example::
 
-  uvicorn narrativelog.main:app --port n
-
-To run the service locally, you will need a running Postgres server
-with a user named ``narrativelog`` that has permission to create tables and rows,
-and a database also named ``narrativelog``.
-With the Postgres server running::
-
+  # Configure the service.
   export SITE_ID=test
-  export BUTLER_URI_1=/Users/rowen/UW/LSST/tsrepos/narrativelog/tests/data/hsc_raw
-  # Also set narrativelog_DB_x environment variables as needed; see above
+  # Also set NARRATIVELOG_DB_x environment variables as needed; see Configuration above
 
-  uvicorn narrativelog.main:app --reload
+  # Activate the environment, if not already activated.
+  source .tox/py38/bin/activate  # if not already activated
 
-  # Then open this link in a browser: http://localhost:8000/narrativelog/
-  # For documentation open http://localhost:8000/narrativelog/docs
+  # Start the service.
+  # The default port is 8000, but the LSST standard port is 8080.
+  # --reload will reload the source code when you change it (don't use for production).
+  uvicorn narrativelog.main:app [--port n] [--reload]
+
+  # If running the service locally on port 8000, connect to it at: http://localhost:8000/narrativelog/
 
 Postgres Guide
 --------------
