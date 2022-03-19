@@ -181,6 +181,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
 
             # Range arguments: min_<field>, max_<field>.
             for field in (
+                "level",
                 "date_added",
                 "date_invalidated",
             ):
@@ -445,6 +446,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                 (
                     "instrument",
                     "message_text",
+                    "level",
                     "user_id",
                     "user_agent",
                 )

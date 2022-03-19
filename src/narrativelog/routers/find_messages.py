@@ -11,6 +11,7 @@ import sqlalchemy as sa
 
 from ..message import Message
 from ..shared_state import SharedState, get_shared_state
+from .normalize_tags import TAG_DESCRIPTION, normalize_tags
 
 router = fastapi.APIRouter()
 
@@ -34,6 +35,12 @@ async def find_messages(
         default=None,
         description="Message text contains...",
     ),
+    min_level: typing.Optional[int] = fastapi.Query(
+        default=None, description="Minimum level, inclusive."
+    ),
+    max_level: typing.Optional[int] = fastapi.Query(
+        default=None, description="Maximum level, exclusive."
+    ),
     user_ids: typing.Optional[typing.List[str]] = fastapi.Query(
         default=None,
         description="User IDs. Repeat the parameter for each value.",
@@ -45,11 +52,12 @@ async def find_messages(
     ),
     tags: typing.Optional[typing.List[str]] = fastapi.Query(
         default=None,
-        description="Tags, at least one of which must be present.",
+        description="Tags, at least one of which must be present. "
+        + TAG_DESCRIPTION,
     ),
     exclude_tags: typing.Optional[typing.List[str]] = fastapi.Query(
         default=None,
-        description="Tags, all of which must be absent.",
+        description="Tags, all of which must be absent. " + TAG_DESCRIPTION,
     ),
     urls: typing.Optional[typing.List[str]] = fastapi.Query(
         default=None,
@@ -86,12 +94,12 @@ async def find_messages(
     ),
     min_date_added: typing.Optional[datetime.datetime] = fastapi.Query(
         default=None,
-        description="Minimum date the exposure was added, inclusive; "
+        description="Minimum date the message was added, inclusive; "
         "TAI as an ISO string with no timezone information",
     ),
     max_date_added: typing.Optional[datetime.datetime] = fastapi.Query(
         default=None,
-        description="Maximum date the exposure was added, exclusive; "
+        description="Maximum date the message was added, exclusive; "
         "TAI as an ISO string with no timezone information",
     ),
     has_date_invalidated: typing.Optional[bool] = fastapi.Query(
@@ -137,6 +145,8 @@ async def find_messages(
     select_arg_names = (
         "site_ids",
         "message_text",
+        "min_level",
+        "max_level",
         "user_ids",
         "user_agents",
         "tags",
@@ -157,6 +167,11 @@ async def find_messages(
         "has_parent_id",
         "order_by",
     )
+
+    if tags is not None:
+        tags = normalize_tags(tags)
+    if exclude_tags is not None:
+        exclude_tags = normalize_tags(exclude_tags)
 
     async with state.narrativelog_db.engine.connect() as connection:
         conditions = []
