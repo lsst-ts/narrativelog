@@ -113,11 +113,10 @@ def modify_environ(**kwargs: typing.Any) -> typing.Iterator:
     -----
     Example of use::
 
-        from lsst.ts import salobj
         ...
         def test_foo(self):
             set_value = "Value for $ENV_TO_SET"
-            with salobj.modify_environ(
+            with modify_environ(
                 HOME=None,  # Delete this env var
                 ENV_TO_SET=set_value,  # Set this env var
             ):
@@ -323,7 +322,7 @@ def random_message() -> MessageDictT:
     to make it easier to visually compare these messages to messages in
     responses.
 
-    String are random ASCII characters. Tags and urls are generated from
+    String are random unicode characters. Tags and urls are generated from
     a random selection (of random length) of possible tags and URLs.
 
     To use:

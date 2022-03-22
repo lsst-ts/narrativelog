@@ -70,9 +70,9 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
             full_edit_args = dict(
                 site_id="NewSite",
                 message_text="New message text",
-                new_severity=101,
-                new_tags=new_tags_list,
-                new_urls=["http:://new/url1 http:://new/url2"],
+                level=101,
+                tags=new_tags_list,
+                urls=["http:://new/url1", "http:://new/url2"],
                 user_id="new user_id",
                 user_agent="new user_agent",
                 is_human=True,

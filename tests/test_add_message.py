@@ -63,12 +63,14 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
                 assert_good_add_response(response=response, add_args=add_args)
 
             # Add a message with all data specified
-            # including all TEST_TAGS in random order
+            # and with all test tags and URLs in random order.
             shuffled_test_tags = TEST_TAGS[:]
             random.shuffle(shuffled_test_tags)
+            shuffled_test_urls = TEST_URLS[:]
+            random.shuffle(shuffled_test_urls)
             add_args_full = add_args.copy()
             add_args_full["tags"] = shuffled_test_tags
-            add_args_full["urls"] = TEST_URLS
+            add_args_full["urls"] = shuffled_test_urls
             add_args_full["time_lost"] = 1234  # seconds
             add_args_full["date_user_specified"] = "2020-01-04T16:41:24"
             response = await client.post(

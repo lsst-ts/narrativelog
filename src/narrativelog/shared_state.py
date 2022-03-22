@@ -13,12 +13,38 @@ _shared_state: typing.Optional[SharedState] = None
 
 
 def get_env(name: str, default: typing.Optional[str] = None) -> str:
+    """Get a value from an environment variable.
+
+    Parameters
+    ----------
+    name
+        The name of the environment variable.
+    default
+        The default value; if None then raise ValueError if absent.
+    """
     if default is not None and not isinstance(default, str):
         raise ValueError(f"default={default!r} must be a str or None")
     value = os.environ.get(name, default)
     if value is None:
         raise ValueError(f"You must specify environment variable {name}")
     return value
+
+
+def create_db_url() -> str:
+    """Create the narrativelog database URL from environment variables."""
+    narrativelog_db_user = get_env("NARRATIVELOG_DB_USER", "narrativelog")
+    narrativelog_db_password = get_env("NARRATIVELOG_DB_PASSWORD", "")
+    narrativelog_db_host = get_env("NARRATIVELOG_DB_HOST", "localhost")
+    narrativelog_db_port = int(get_env("NARRATIVELOG_DB_PORT", "5432"))
+    narrativelog_db_database = get_env(
+        "NARRATIVELOG_DB_DATABASE", "narrativelog"
+    )
+    encoded_db_password = urllib.parse.quote_plus(narrativelog_db_password)
+    return (
+        f"postgresql+asyncpg://{narrativelog_db_user}:{encoded_db_password}"
+        f"@{narrativelog_db_host}:{narrativelog_db_port}"
+        f"/{narrativelog_db_database}"
+    )
 
 
 class SharedState:
@@ -61,19 +87,7 @@ class SharedState:
             )
         self.log = logging.getLogger("narrativelog")
 
-        narrativelog_db_user = get_env("NARRATIVELOG_DB_USER", "narrativelog")
-        narrativelog_db_password = get_env("NARRATIVELOG_DB_PASSWORD", "")
-        narrativelog_db_host = get_env("NARRATIVELOG_DB_HOST", "localhost")
-        narrativelog_db_port = int(get_env("NARRATIVELOG_DB_PORT", "5432"))
-        narrativelog_db_database = get_env(
-            "NARRATIVELOG_DB_DATABASE", "narrativelog"
-        )
-        encoded_db_password = urllib.parse.quote_plus(narrativelog_db_password)
-        narrativelog_db_url = (
-            f"postgresql://{narrativelog_db_user}:{encoded_db_password}"
-            f"@{narrativelog_db_host}:{narrativelog_db_port}"
-            f"/{narrativelog_db_database}"
-        )
+        narrativelog_db_url = create_db_url()
         self.narrativelog_db = log_message_database.LogMessageDatabase(
             url=narrativelog_db_url
         )
