@@ -2,6 +2,12 @@
 Release Notes
 =============
 
+0.2.1
+-----
+
+* Dockerfile: switch to a simpler base image, as per current SQuaRE recommendations.
+* Add scripts/start-api.sh to run schema evolution and start the service.
+
 0.2.0
 -----
 

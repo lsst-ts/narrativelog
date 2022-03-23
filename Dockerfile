@@ -12,17 +12,25 @@
 # runtime-image
 #   - Copies the virtual environment into place.
 #   - Runs a non-root user.
-#   - Configures gunicorn.
+#   - Sets up the entrypoint and port.
 
-FROM tiangolo/uvicorn-gunicorn:python3.8-slim AS base-image
+FROM python:3.10.3-slim-bullseye as base-image
 
 # Update system packages
 COPY scripts/install-base-packages.sh .
-RUN ./install-base-packages.sh
-RUN rm ./install-base-packages.sh
+RUN ./install-base-packages.sh && rm ./install-base-packages.sh
 
 FROM base-image AS dependencies-image
 
+# Install system packages only needed for building dependencies.
+COPY scripts/install-dependency-packages.sh .
+RUN ./install-dependency-packages.sh
+
+# Create a Python virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+# Make sure we use the virtualenv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # Put the latest pip and setuptools in the virtualenv
 RUN pip install --upgrade --no-cache-dir pip setuptools wheel
 
@@ -30,30 +38,35 @@ RUN pip install --upgrade --no-cache-dir pip setuptools wheel
 COPY requirements/main.txt ./requirements.txt
 RUN pip install --quiet --no-cache-dir -r requirements.txt
 
-FROM dependencies-image AS runtime-image
+FROM dependencies-image AS install-image
 
-# Install the web application
-COPY . /app
-RUN pip install --no-cache-dir /app
+# Use the virtualenv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY . /workdir
+WORKDIR /workdir
+RUN pip install --no-cache-dir .
+
+FROM base-image AS runtime-image
 
 # Create a non-root user
 RUN useradd --create-home appuser
-WORKDIR /home/appuser
 
-# Switch to non-root user
+# Copy the virtualenv
+COPY --from=install-image /opt/venv /opt/venv
+
+COPY alembic /alembic
+COPY alembic.ini /alembic.ini
+COPY scripts/start-api.sh /start-api.sh
+
+# Make sure we use the virtualenv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Switch to the non-root user.
 USER appuser
 
-# We use a module name other than app, so tell the base image that.  This
-# does not copy the app into /app as is recommended by the base Docker
-# image documentation and instead relies on the module search path as
-# modified by the virtualenv.
-ENV MODULE_NAME=narrativelog.main
-
-# The default starts 40 workers, which exhausts the available connections
-# on a micro Cloud SQL PostgreSQL server and seems excessive since we can
-# scale with Kubernetes.  Cap the workers at 10.
-ENV MAX_WORKERS=10
-
-# Our Kubernetes does not allow serving on the default port 80.
-ENV PORT=8080
+# Expose the port.
 EXPOSE 8080
+
+# Run the application.
+CMD ["/start-api.sh"]
