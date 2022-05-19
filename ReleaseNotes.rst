@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+0.2.2
+-----
+
+* Improve alembic migration to handle the case that the message table does not exist.
+* Add ``tests/test_alembic_migration.py``.
+* `LogMessageDatabase`: add message_table constructor argument to improve encapsulation.
+* setup.cfg: specify asyncio_mode = auto.
+
 0.2.1
 -----
 
