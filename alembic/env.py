@@ -1,7 +1,8 @@
 import asyncio
+import logging
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config, inspect, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
@@ -29,38 +30,22 @@ target_metadata = None
 # ... etc.
 
 
-def run_migrations_offline():
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well. By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-    """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
-
-    with context.begin_transaction():
-        context.run_migrations()
-
-
 def do_run_migrations(connection):
     """Run a migration given an async connection.
 
     A helper function used by run_migrations_online.
     """
+    log = logging.getLogger("alembic.script")
+    log.setLevel(logging.INFO)
     context.configure(connection=connection, target_metadata=target_metadata)
 
+    # This must be done after configuring the context,
+    # else the migration does nothing.
+    inspector = inspect(connection)
+    table_names = set(inspector.get_table_names())
+
     with context.begin_transaction():
-        context.run_migrations()
+        context.run_migrations(log=log, table_names=table_names)
 
 
 async def run_migrations_online():
@@ -85,6 +70,6 @@ async def run_migrations_online():
 
 
 if context.is_offline_mode():
-    run_migrations_offline()
+    raise NotImplementedError("Not supported")
 else:
     asyncio.run(run_migrations_online())
