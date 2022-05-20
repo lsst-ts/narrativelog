@@ -7,7 +7,8 @@ import os
 import typing
 import urllib
 
-from . import create_message_table, log_message_database
+from .create_message_table import SITE_ID_LEN, create_message_table
+from .log_message_database import LogMessageDatabase
 
 _shared_state: typing.Optional[SharedState] = None
 
@@ -80,16 +81,14 @@ class SharedState:
 
     def __init__(self):  # type: ignore
         self.site_id = get_env("SITE_ID")
-        if len(self.site_id) > create_message_table.SITE_ID_LEN:
+        if len(self.site_id) > SITE_ID_LEN:
             raise ValueError(
-                f"SITE_ID={self.site_id!r} too long; "
-                f"max length={create_message_table.SITE_ID_LEN}"
+                f"SITE_ID={self.site_id!r} too long; max length={SITE_ID_LEN}"
             )
         self.log = logging.getLogger("narrativelog")
 
-        narrativelog_db_url = create_db_url()
-        self.narrativelog_db = log_message_database.LogMessageDatabase(
-            url=narrativelog_db_url
+        self.narrativelog_db = LogMessageDatabase(
+            message_table=create_message_table(), url=create_db_url()
         )
 
 
