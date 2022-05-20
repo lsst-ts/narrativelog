@@ -18,12 +18,12 @@ async def get_message(
     state: SharedState = fastapi.Depends(get_shared_state),
 ) -> Message:
     """Get one message."""
-    el_table = state.narrativelog_db.table
+    message_table = state.narrativelog_db.message_table
 
     # Find the message
     async with state.narrativelog_db.engine.connect() as connection:
         result = await connection.execute(
-            el_table.select().where(el_table.c.id == id)
+            message_table.select().where(message_table.c.id == id)
         )
         row = result.fetchone()
 

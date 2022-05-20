@@ -72,7 +72,7 @@ async def edit_message(
       in order to provide a link to the parent message.
     - Set timestamp_is_valid_changed=now on the parent message.
     """
-    el_table = state.narrativelog_db.table
+    message_table = state.narrativelog_db.message_table
 
     parent_id = id
     old_site_id = site_id
@@ -101,8 +101,8 @@ async def edit_message(
     async with state.narrativelog_db.engine.begin() as connection:
         # Find the parent message.
         get_parent_result = await connection.execute(
-            el_table.select()
-            .where(el_table.c.id == parent_id)
+            message_table.select()
+            .where(message_table.c.id == parent_id)
             .with_for_update()
         )
         parent_row = get_parent_result.fetchone()
@@ -122,7 +122,7 @@ async def edit_message(
         new_data["date_added"] = current_tai
         new_data["parent_id"] = parent_id
         add_row = await connection.execute(
-            el_table.insert()
+            message_table.insert()
             .values(**new_data)
             .returning(sa.literal_column("*"))
         )
@@ -130,8 +130,8 @@ async def edit_message(
 
         # Mark the parent message as invalid.
         await connection.execute(
-            el_table.update()
-            .where(el_table.c.id == parent_id)
+            message_table.update()
+            .where(message_table.c.id == parent_id)
             .values(date_invalidated=current_tai)
         )
 

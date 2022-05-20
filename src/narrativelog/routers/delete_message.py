@@ -27,18 +27,18 @@ async def delete_message(
     """
     current_tai = astropy.time.Time.now().tai.datetime
 
-    el_table = state.narrativelog_db.table
+    message_table = state.narrativelog_db.message_table
 
     # Delete the message by setting date_invalidated to the current TAI time
     # (if not already set). Note: coalesce returns the first non-null
     # value from a list of values.
     async with state.narrativelog_db.engine.begin() as connection:
         result = await connection.execute(
-            el_table.update()
-            .where(el_table.c.id == id)
+            message_table.update()
+            .where(message_table.c.id == id)
             .values(
                 date_invalidated=sa.func.coalesce(
-                    el_table.c.date_invalidated, current_tai
+                    message_table.c.date_invalidated, current_tai
                 )
             )
         )

@@ -61,12 +61,12 @@ async def add_message(
 
     tags = normalize_tags(tags)
 
-    el_table = state.narrativelog_db.table
+    message_table = state.narrativelog_db.message_table
 
     # Add the message.
     async with state.narrativelog_db.engine.begin() as connection:
         result = await connection.execute(
-            el_table.insert()
+            message_table.insert()
             .values(
                 site_id=state.site_id,
                 message_text=message_text,
