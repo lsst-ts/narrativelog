@@ -35,6 +35,11 @@ Create (once) and activate a local conda environment::
 
   conda activate square
 
+For development work, you can install dependencies into the current conda environment,
+and put the src directory in the PYTHONPATH using::
+
+  make init
+ 
 If you change requirements (in requirements/dev.in or main.in),
 or if running the code gives a "package not found" error,
 update the generated dependencies and install the new requirements using::
@@ -51,13 +56,6 @@ If that fails with a complaint about missing packages try rebuilding your enviro
 
   tox -r
 
-To run unit tests manually (which has much less overhead than running tox),
-or to run the service, you must first activate tox's virtual environment.
-Warning: if you run unit tests this way, it tests the library code most recently built by tox;
-changes to library are ignored until you run tox again::
-
-  source .tox/py310/bin/activate
-
 To lint the code (run it twice if it reports a linting error the first time)::
 
   tox -e lint
@@ -73,9 +71,6 @@ With the Postgres server running, for example::
   # Configure the service.
   export SITE_ID=test
   # Also set NARRATIVELOG_DB_x environment variables as needed; see Configuration above
-
-  # Activate the environment, if not already activated.
-  source .tox/py310/bin/activate  # if not already activated
 
   # Start the service.
   # The default port is 8000, but the LSST standard port is 8080.
