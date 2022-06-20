@@ -30,7 +30,7 @@ Developer Guide
 
 Create (once) and activate a local conda environment::
 
-  conda create --name square python=3.8
+  conda create --name square python=3.10
   conda env list
 
   conda activate square
@@ -56,7 +56,7 @@ or to run the service, you must first activate tox's virtual environment.
 Warning: if you run unit tests this way, it tests the library code most recently built by tox;
 changes to library are ignored until you run tox again::
 
-  source .tox/py38/bin/activate
+  source .tox/py310/bin/activate
 
 To lint the code (run it twice if it reports a linting error the first time)::
 
@@ -75,7 +75,7 @@ With the Postgres server running, for example::
   # Also set NARRATIVELOG_DB_x environment variables as needed; see Configuration above
 
   # Activate the environment, if not already activated.
-  source .tox/py38/bin/activate  # if not already activated
+  source .tox/py310/bin/activate  # if not already activated
 
   # Start the service.
   # The default port is 8000, but the LSST standard port is 8080.
