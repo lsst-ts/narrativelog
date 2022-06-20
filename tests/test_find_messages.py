@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import http
 import itertools
 import random
 import typing
@@ -496,8 +497,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
             # Check order_by two fields
             for field1, field2 in itertools.product(fields, fields):
                 order_by = [field1, field2]
-                find_args = dict()
-                find_args["order_by"] = order_by
+                find_args = {"order_by": order_by}
                 response = await client.get(
                     "/narrativelog/messages", params=find_args
                 )
@@ -506,6 +506,14 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                     assert_messages_ordered(
                         messages=messages, order_by=order_by
                     )
+
+            # Check invalid order_by fields
+            for bad_order_by in ("not_a_field", "+id"):
+                find_args = {"order_by": [bad_order_by]}
+                response = await client.get(
+                    "/narrativelog/messages", params=find_args
+                )
+                assert response.status_code == http.HTTPStatus.BAD_REQUEST
 
             # Check that limit must be positive
             response = await client.get(

@@ -4,12 +4,13 @@ __all__ = ["find_messages"]
 
 import datetime
 import enum
+import http
 import typing
 
 import fastapi
 import sqlalchemy as sa
 
-from ..message import Message
+from ..message import MESSAGE_ORDER_BY_VALUES, Message
 from ..shared_state import SharedState, get_shared_state
 from .normalize_tags import TAG_DESCRIPTION, normalize_tags
 
@@ -20,6 +21,9 @@ class TriState(str, enum.Enum):
     either = "either"
     true = "true"
     false = "false"
+
+
+MESSAGE_ORDER_BY_SET = set(MESSAGE_ORDER_BY_VALUES)
 
 
 @router.get("/messages", response_model=typing.List[Message])
@@ -120,8 +124,8 @@ async def find_messages(
         default=None,
         description="Does this message have a non-null parent ID?",
     ),
-    order_by: typing.List[str] = fastapi.Query(
-        default=["date_added"],
+    order_by: typing.Optional[typing.List[str]] = fastapi.Query(
+        default=None,
         description="Fields to sort by. "
         "Prefix a name with - for descending order, e.g. -id. "
         "Repeat the parameter for each value.",
@@ -165,8 +169,35 @@ async def find_messages(
         "min_date_invalidated",
         "max_date_invalidated",
         "has_parent_id",
-        "order_by",
     )
+
+    # Compute the columns to order by.
+    # If order_by does not include "id" then append it, to make the order
+    # repeatable. Otherwise different calls can return data in different
+    # orders, which is a disaster when using limit and offset.
+    order_by_columns = []
+    if order_by is None:
+        order_by = ["id"]
+    else:
+        order_by_set = set(order_by)
+        bad_fields = order_by_set - MESSAGE_ORDER_BY_SET
+        if bad_fields:
+            raise fastapi.HTTPException(
+                status_code=http.HTTPStatus.BAD_REQUEST,
+                detail=f"Invalid order_by fields: {sorted(bad_fields)}; "
+                + f"allowed values are {MESSAGE_ORDER_BY_VALUES}",
+            )
+        if not order_by_set & {"id", "-id"}:
+            order_by.append("id")
+    for item in order_by:
+        if item.startswith("-"):
+            column_name = item[1:]
+            column = message_table.columns[column_name]
+            order_by_columns.append(sa.sql.desc(column))
+        else:
+            column_name = item
+            column = message_table.columns[column_name]
+            order_by_columns.append(sa.sql.asc(column))
 
     if tags is not None:
         tags = normalize_tags(tags)
@@ -175,8 +206,6 @@ async def find_messages(
 
     async with state.narrativelog_db.engine.connect() as connection:
         conditions = []
-        order_by_columns = []
-        order_by_id = False
         # Handle minimums and maximums
         for key in select_arg_names:
             value = locals()[key]
@@ -237,27 +266,9 @@ async def find_messages(
                     logical_value = value == TriState.true
                     column = message_table.columns[key]
                     conditions.append(column == logical_value)
-            elif key == "order_by":
-                for item in value:
-                    if item.startswith("-"):
-                        column_name = item[1:]
-                        column = message_table.columns[column_name]
-                        order_by_columns.append(sa.sql.desc(column))
-                    else:
-                        column_name = item
-                        column = message_table.columns[column_name]
-                        order_by_columns.append(sa.sql.asc(column))
-                    if column_name == "id":
-                        order_by_id = True
-
             else:
                 raise RuntimeError(f"Bug: unrecognized key: {key}")
 
-        # If order_by does not include "id" then append it, to make the order
-        # repeatable. Otherwise different calls can return data in different
-        # orders, which is a disaster when using limit and offset.
-        if not order_by_id:
-            order_by_columns.append(sa.sql.asc(message_table.c.id))
         if conditions:
             full_conditions = sa.sql.and_(*conditions)
         else:

@@ -1,4 +1,4 @@
-__all__ = ["Message", "MESSAGE_FIELDS"]
+__all__ = ["Message", "MESSAGE_FIELDS", "MESSAGE_ORDER_BY_VALUES"]
 
 import datetime
 import typing
@@ -57,3 +57,20 @@ class Message(pydantic.BaseModel):
 
 
 MESSAGE_FIELDS = tuple(Message.schema()["properties"].keys())
+
+
+def _make_message_order_by_values() -> tuple[str, ...]:
+    """Make a tuple of valid order_by values for find_messages.
+
+    Return a tuple of all field names,
+    plus those same field names with a leading "-".
+    """
+    order_by_values = []
+    for field in Message.schema()["properties"]:
+        order_by_values += [field, "-" + field]
+    return tuple(order_by_values)
+
+
+# Tuple of valid order_by fields.
+# Each of these exists in the Message class.
+MESSAGE_ORDER_BY_VALUES = _make_message_order_by_values()
