@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import typing
 import unittest
 
@@ -31,7 +29,7 @@ class SharedStateTestCase(unittest.IsolatedAsyncioTestCase):
                 with self.assertRaises(RuntimeError):
                     get_shared_state()
 
-                required_kwargs: typing.Dict[str, typing.Any] = dict(
+                required_kwargs: dict[str, typing.Any] = dict(
                     SITE_ID=TEST_SITE_ID
                 )
                 db_config = db_config_from_dsn(postgresql.dsn())

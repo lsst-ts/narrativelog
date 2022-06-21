@@ -1,6 +1,16 @@
-=============
-Release Notes
-=============
+==========
+Change Log
+==========
+
+0.2.3
+-----
+
+* find_messages: improve validation of the order_by query parameter.
+* Update to python 3.10.
+* Modernize type annotations, applying changes that required Python 3.9 or 3.10.
+  Use native types or `collections.abc` where possible.
+  Replace `typing.Union` and `typing.Optional` with ``|``.
+  Remove ``from __future__ import annotations`` where possible.
 
 0.2.2
 -----

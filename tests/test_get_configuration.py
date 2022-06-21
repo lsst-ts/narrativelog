@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import unittest
 
 from narrativelog.shared_state import get_shared_state

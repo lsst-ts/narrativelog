@@ -1,5 +1,5 @@
-from __future__ import annotations
-
+import collections.abc
+import http
 import itertools
 import random
 import typing
@@ -28,7 +28,9 @@ class doc_str:
     def __init__(self, doc: str):
         self.doc = doc
 
-    def __call__(self, func: typing.Callable) -> typing.Callable:
+    def __call__(
+        self, func: collections.abc.Callable
+    ) -> collections.abc.Callable:
         func.__doc__ = self.doc
         return func
 
@@ -36,7 +38,7 @@ class doc_str:
 def assert_good_find_response(
     response: httpx.Response,
     messages: list[MessageDictT],
-    predicate: typing.Callable,
+    predicate: collections.abc.Callable,
 ) -> list[MessageDictT]:
     """Assert that the correct messages were found.
 
@@ -84,7 +86,7 @@ def assert_messages_ordered(
     full_order_by = list(order_by)
     if not ("id" in order_by or "-id" in order_by):
         full_order_by.append("id")
-    message1: typing.Optional[dict] = None
+    message1: None | dict = None
     for message2 in messages:
         if message1 is not None:
             assert_two_messages_ordered(
@@ -175,8 +177,8 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
             # * dict of find arg name: value
             # * predicate: function that takes a message dict
             #   and returns True if the message matches the query
-            find_args_predicates: typing.List[
-                typing.Tuple[typing.Dict[str, typing.Any], typing.Callable]
+            find_args_predicates: list[
+                tuple[dict[str, typing.Any], collections.abc.Callable]
             ] = list()
 
             # Range arguments: min_<field>, max_<field>.
@@ -391,7 +393,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                     )
                     def predicate_and_is_valid(
                         message: MessageDictT,
-                        predicate: typing.Callable = predicate,
+                        predicate: collections.abc.Callable = predicate,
                     ) -> bool:
                         return (
                             predicate(message) and message["is_valid"] is True
@@ -415,8 +417,8 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                 @doc_str(f"{predicate1.__doc__} and {predicate2.__doc__}")
                 def and_predicates(
                     message: MessageDictT,
-                    predicate1: typing.Callable,
-                    predicate2: typing.Callable,
+                    predicate1: collections.abc.Callable,
+                    predicate2: collections.abc.Callable,
                 ) -> bool:
                     return predicate1(message) and predicate2(message)
 
@@ -464,7 +466,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                         messages=messages, order_by=order_by
                     )
 
-                paged_messages: typing.List[MessageDictT] = []
+                paged_messages: list[MessageDictT] = []
                 limit = 2
                 find_args["limit"] = limit
                 while len(paged_messages) < len(messages):
@@ -496,8 +498,7 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
             # Check order_by two fields
             for field1, field2 in itertools.product(fields, fields):
                 order_by = [field1, field2]
-                find_args = dict()
-                find_args["order_by"] = order_by
+                find_args = {"order_by": order_by}
                 response = await client.get(
                     "/narrativelog/messages", params=find_args
                 )
@@ -506,6 +507,14 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                     assert_messages_ordered(
                         messages=messages, order_by=order_by
                     )
+
+            # Check invalid order_by fields
+            for bad_order_by in ("not_a_field", "+id"):
+                find_args = {"order_by": [bad_order_by]}
+                response = await client.get(
+                    "/narrativelog/messages", params=find_args
+                )
+                assert response.status_code == http.HTTPStatus.BAD_REQUEST
 
             # Check that limit must be positive
             response = await client.get(

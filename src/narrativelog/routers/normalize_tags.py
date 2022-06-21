@@ -1,8 +1,8 @@
 __all__ = ["TAG_DESCRIPTION", "normalize_tags"]
 
+import collections.abc
 import http
 import re
-import typing
 
 import fastapi
 
@@ -15,7 +15,7 @@ TAG_DESCRIPTION = (
 VALID_TAG_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]+$")
 
 
-def normalize_tags(tags: typing.Iterable[str]) -> typing.List[str]:
+def normalize_tags(tags: collections.abc.Iterable[str]) -> list[str]:
     """Normalize a list of tags.
 
     Check the tags and, if all are valid, cast to lowercase.

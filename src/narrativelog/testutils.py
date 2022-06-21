@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "TEST_SITE_ID",
     "TEST_TAGS",
@@ -12,6 +10,7 @@ __all__ = [
     "modify_environ",
 ]
 
+import collections.abc
 import contextlib
 import datetime
 import http
@@ -46,8 +45,8 @@ TEST_URLS = [
 ]
 
 # Type annotation aliases
-MessageDictT = typing.Dict[str, typing.Any]
-ArgDictT = typing.Dict[str, typing.Any]
+MessageDictT = dict[str, typing.Any]
+ArgDictT = dict[str, typing.Any]
 
 random.seed(47)
 
@@ -56,8 +55,8 @@ random.seed(47)
 async def create_test_client(
     num_messages: int = 0,
     num_edited: int = 0,
-) -> typing.AsyncGenerator[
-    typing.Tuple[httpx.AsyncClient, typing.List[MessageDictT]], None
+) -> collections.abc.AsyncGenerator[
+    tuple[httpx.AsyncClient, list[MessageDictT]], None
 ]:
     """Create the test database, test server, and httpx client."""
     with testing.postgresql.Postgresql() as postgresql:
@@ -89,7 +88,7 @@ async def create_test_client(
 
 
 @contextlib.contextmanager
-def modify_environ(**kwargs: typing.Any) -> typing.Iterator:
+def modify_environ(**kwargs: typing.Any) -> collections.abc.Iterator:
     """Context manager to temporarily patch os.environ.
 
     This calls `unittest.mock.patch` and is only intended for unit tests.
@@ -290,9 +289,7 @@ def random_str(nchar: int) -> str:
     return "".join(random.sample(chars, nchar))
 
 
-def random_words(
-    words: typing.List[str], max_num: int = 3
-) -> typing.List[str]:
+def random_words(words: list[str], max_num: int = 3) -> list[str]:
     """Return a list of 0 or more words.
 
     Parameters
@@ -391,8 +388,8 @@ def random_messages(num_messages: int, num_edited: int) -> list[MessageDictT]:
         message["id"] = uuid.uuid4()
 
     # Create edited messages.
-    parent_message_id_set: typing.Set[uuid.UUID] = set()
-    edited_messages: typing.List[MessageDictT] = list(
+    parent_message_id_set: set[uuid.UUID] = set()
+    edited_messages: list[MessageDictT] = list(
         # [1:] because there is no older message to be the parent.
         random.sample(message_list[1:], num_edited)
     )

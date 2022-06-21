@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = ["delete_message"]
 
 import http
