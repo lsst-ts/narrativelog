@@ -1,10 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["edit_message"]
 
 import datetime
 import http
-import typing
 
 import astropy.time
 import fastapi
@@ -20,42 +17,44 @@ router = fastapi.APIRouter()
 @router.patch("/messages/{id}", response_model=Message)
 async def edit_message(
     id: str,
-    message_text: typing.Optional[str] = fastapi.Body(
-        default=None, description="Message text"
-    ),
-    level: typing.Optional[int] = fastapi.Body(
+    message_text: None
+    | str = fastapi.Body(default=None, description="Message text"),
+    level: None
+    | int = fastapi.Body(
         default=None,
         description="Message level; a python logging level.",
     ),
-    tags: typing.Optional[typing.List[str]] = fastapi.Body(
+    tags: None
+    | list[str] = fastapi.Body(
         default=None,
         description="Tags describing the message, as space-separated words. "
         "If specified, replaces the existing set of tags. " + TAG_DESCRIPTION,
     ),
-    urls: typing.Optional[typing.List[str]] = fastapi.Body(
+    urls: None
+    | list[str] = fastapi.Body(
         default=None,
         description="URLs of associated JIRA tickets, screen shots, etc.: "
         "space-separated. If specified, replaces the existing set.",
     ),
-    time_lost: typing.Optional[datetime.timedelta] = fastapi.Body(
+    time_lost: None
+    | datetime.timedelta = fastapi.Body(
         default=None, description="Estimate of lost on-sky time."
     ),
-    date_user_specified: typing.Optional[datetime.datetime] = fastapi.Body(
+    date_user_specified: None
+    | datetime.datetime = fastapi.Body(
         default=None,
         description="Approximate TAI date at which this message is relevant "
         "(if different than the time at which the message was specified)",
     ),
-    site_id: typing.Optional[str] = fastapi.Body(
-        default=None, description="Site ID"
-    ),
-    user_id: typing.Optional[str] = fastapi.Body(
-        default=None, description="User ID"
-    ),
-    user_agent: typing.Optional[str] = fastapi.Body(
+    site_id: None | str = fastapi.Body(default=None, description="Site ID"),
+    user_id: None | str = fastapi.Body(default=None, description="User ID"),
+    user_agent: None
+    | str = fastapi.Body(
         default=None,
         description="User agent (which app created the message)",
     ),
-    is_human: typing.Optional[bool] = fastapi.Body(
+    is_human: None
+    | bool = fastapi.Body(
         default=None,
         description="Was the message created by a human being?",
     ),

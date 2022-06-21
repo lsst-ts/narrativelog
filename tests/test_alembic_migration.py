@@ -1,3 +1,4 @@
+import collections.abc
 import contextlib
 import os
 import subprocess
@@ -22,7 +23,9 @@ SITE_ID_LEN = 16
 
 
 @contextlib.asynccontextmanager
-async def create_database() -> typing.AsyncGenerator[AsyncEngine, None]:
+async def create_database() -> collections.abc.AsyncGenerator[
+    AsyncEngine, None
+]:
 
     """Create an empty database and set env vars to point to it.
 
@@ -44,7 +47,7 @@ async def create_database() -> typing.AsyncGenerator[AsyncEngine, None]:
 
 async def get_column_info(
     connection: AsyncConnection, table: str
-) -> typing.List[typing.Dict[str, typing.Any]]:
+) -> list[dict[str, typing.Any]]:
     """Get column info for a specified table.
 
     Parameters
@@ -62,7 +65,7 @@ async def get_column_info(
         "name", "type", "nullable", "default", and "autoincrement"
     """
 
-    def _impl(connection: Connection) -> typing.List[str]:
+    def _impl(connection: Connection) -> list[str]:
         """Synchronous implementation.
 
         Inspect does not work with an async connection
@@ -75,7 +78,7 @@ async def get_column_info(
 
 async def get_column_names(
     connection: AsyncConnection, table: str
-) -> typing.List[str]:
+) -> list[str]:
     """A simplified version of get_column_info that just returns column names.
 
     Parameters
@@ -94,7 +97,7 @@ async def get_column_names(
     return [item["name"] for item in column_info]
 
 
-async def get_table_names(connection: AsyncConnection) -> typing.List[str]:
+async def get_table_names(connection: AsyncConnection) -> list[str]:
     """Get the names of tables in the narrativelog database.
 
     Parameters
@@ -108,7 +111,7 @@ async def get_table_names(connection: AsyncConnection) -> typing.List[str]:
         A list of table names.
     """
 
-    def _impl(connection: Connection) -> typing.List[str]:
+    def _impl(connection: Connection) -> list[str]:
         """Synchronous implementation.
 
         Inspect does not work with an async connection
@@ -183,7 +186,7 @@ class AlembicMigrationTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def test_old_message_table(self) -> None:
         # There is no newer table version at this time
-        new_columns: typing.Set[str] = set()
+        new_columns: set[str] = set()
         async with create_database() as engine:
             old_message_table = create_old_message_table()
             async with engine.begin() as connection:

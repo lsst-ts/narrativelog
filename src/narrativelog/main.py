@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import fastapi
 import fastapi.responses
 import starlette.requests

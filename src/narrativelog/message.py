@@ -1,7 +1,6 @@
 __all__ = ["Message", "MESSAGE_FIELDS", "MESSAGE_ORDER_BY_VALUES"]
 
 import datetime
-import typing
 import uuid
 
 import pydantic
@@ -19,16 +18,16 @@ class Message(pydantic.BaseModel):
         title="Message level. A python logging level: "
         "info=20, warning=30, error=40."
     )
-    tags: typing.List[str] = pydantic.Field(
+    tags: list[str] = pydantic.Field(
         title="Zero or more space-separated keywords relevant to this message."
     )
-    urls: typing.List[str] = pydantic.Field(
+    urls: list[str] = pydantic.Field(
         title="Zero or more space-separated URLS to JIRA tickets, screen shots, etc."
     )
     time_lost: datetime.timedelta = pydantic.Field(
         title="Estimate of lost on-sky time."
     )
-    date_user_specified: typing.Optional[datetime.datetime] = pydantic.Field(
+    date_user_specified: None | datetime.datetime = pydantic.Field(
         title="Approximate TAI date at which this message is relevant "
         "(if different than the time at which the message was specified)"
     )
@@ -45,10 +44,10 @@ class Message(pydantic.BaseModel):
     date_added: datetime.datetime = pydantic.Field(
         title="TAI date at which the message was added."
     )
-    date_invalidated: typing.Optional[datetime.datetime] = pydantic.Field(
+    date_invalidated: None | datetime.datetime = pydantic.Field(
         title="TAI date at which is_valid was last set true."
     )
-    parent_id: typing.Optional[uuid.UUID] = pydantic.Field(
+    parent_id: None | uuid.UUID = pydantic.Field(
         title="Message ID of message this is an edited version of."
     )
 

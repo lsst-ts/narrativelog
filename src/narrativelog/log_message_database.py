@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Configuration definition."""
 
 __all__ = ["LogMessageDatabase"]

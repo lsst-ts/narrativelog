@@ -1,9 +1,6 @@
-from __future__ import annotations
-
 __all__ = ["add_message"]
 
 import datetime
-import typing
 
 import astropy.time
 import fastapi
@@ -26,12 +23,12 @@ async def add_message(
     level: int = fastapi.Body(
         ..., description="Message level; a python logging level."
     ),
-    tags: typing.List[str] = fastapi.Body(
+    tags: list[str] = fastapi.Body(
         default=[],
         description="Tags describing the message, as space-separated words. "
         + TAG_DESCRIPTION,
     ),
-    urls: typing.List[str] = fastapi.Body(
+    urls: list[str] = fastapi.Body(
         default=[],
         description="URLs of associated JIRA tickets, screen shots, etc.: "
         "space-separated.",
@@ -40,7 +37,8 @@ async def add_message(
         default=datetime.timedelta(),
         description="Estimate of lost on-sky time. Defaults to 0.",
     ),
-    date_user_specified: typing.Optional[datetime.datetime] = fastapi.Body(
+    date_user_specified: None
+    | datetime.datetime = fastapi.Body(
         default=None,
         description="Approximate TAI date at which this message is relevant "
         "(if different than the time at which the message was specified)",
