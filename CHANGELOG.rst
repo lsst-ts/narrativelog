@@ -2,10 +2,16 @@
 Change Log
 ==========
 
+0.2.4
+-----
+
+* add_message: improve handling of the ``date_user_specified`` parameter.
+  Document that it must not include time zone information, and raise a clear error if it does.
+
 0.2.3
 -----
 
-* find_messages: improve validation of the order_by query parameter.
+* find_messages: improve validation of the ``order_by`` query parameter.
 * Update to python 3.10.
 * Modernize type annotations, applying changes that required Python 3.9 or 3.10.
   Use native types or `collections.abc` where possible.
