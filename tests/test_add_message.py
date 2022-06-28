@@ -114,3 +114,19 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
                     "/narrativelog/messages", json=bad_add_args
                 )
                 assert 400 <= response.status_code < 500
+
+            # Error: date_user_specified must not specify a time zone
+            for timezone_suffix in (
+                "Z",
+                "+00",
+                "+02",
+                "-03",
+                "+04:00",
+                "-06:00",
+            ):
+                bad_add_args = add_args_full.copy()
+                bad_add_args["date_user_specified"] += timezone_suffix  # type: ignore
+                response = await client.post(
+                    "/narrativelog/messages", json=bad_add_args
+                )
+                assert response.status_code == http.HTTPStatus.BAD_REQUEST
