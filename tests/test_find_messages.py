@@ -239,6 +239,9 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
             # <field>, with a list of values.
             for field in (
                 "tags",
+                "systems",
+                "subsystems",
+                "cscs",
                 "urls",
             ):
                 # Scramble the messages and use two field list values

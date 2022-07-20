@@ -71,6 +71,9 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             add_args_full["urls"] = shuffled_test_urls
             add_args_full["time_lost"] = 1234  # seconds
             add_args_full["date_user_specified"] = "2020-01-04T16:41:24"
+            add_args_full["systems"] = ["a system", "another system"]
+            add_args_full["subsystems"] = ["a subsystem", "another subsystem"]
+            add_args_full["cscs"] = ["MTHexapod:1", "MTRotator"]
             response = await client.post(
                 "/narrativelog/messages", json=add_args_full
             )

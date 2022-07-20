@@ -38,6 +38,11 @@ def create_message_table() -> sa.Table:
         sa.Column("date_added", saty.DateTime(), nullable=False),
         sa.Column("date_invalidated", saty.DateTime(), nullable=True),
         sa.Column("parent_id", UUID(as_uuid=True), nullable=True),
+        # Added 2022-07-19
+        sa.Column("systems", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column("cscs", saty.ARRAY(sa.Text), nullable=False),
+        # Constraints
         sa.ForeignKeyConstraint(["parent_id"], ["message.id"]),
     )
 

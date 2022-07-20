@@ -68,11 +68,54 @@ async def find_messages(
         default=None,
         description="Tags, all of which must be absent. " + TAG_DESCRIPTION,
     ),
+    systems: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="System names or fragments of names. All messages "
+        "with a system that matches any of these are included. "
+        "Repeat the parameter for each value.",
+    ),
+    exclude_systems: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="System names or fragments of names. All messages "
+        "with a system that matches any of these are excluded. "
+        "Repeat the parameter for each value.",
+    ),
+    subsystems: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Subsystem names or fragments of names. All messages "
+        "with a subsystem that matches any of these are included. "
+        "Repeat the parameter for each value.",
+    ),
+    exclude_subsystems: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Subsystem names or fragments of names. All messages "
+        "with a subsystem that matches any of these are excluded. "
+        "Repeat the parameter for each value.",
+    ),
+    cscs: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="CSC names or fragments of CSC names, "
+        "of which at least one must be present. "
+        "Repeat the parameter for each value.",
+    ),
+    exclude_cscs: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="CSC names or fragments of CSC names, "
+        "of which all must be absent. "
+        "Repeat the parameter for each value.",
+    ),
     urls: None
     | list[str] = fastapi.Query(
         default=None,
         desription="URLs, or fragments of URLs, "
-        "at least one of which must be present.",
+        "of which at least one of which must be present. "
+        "Repeat the parameter for each value.",
     ),
     min_time_lost: None
     | datetime.timedelta = fastapi.Query(
@@ -167,6 +210,12 @@ async def find_messages(
         "max_level",
         "user_ids",
         "user_agents",
+        "systems",
+        "exclude_systems",
+        "subsystems",
+        "exclude_subsystems",
+        "cscs",
+        "exclude_cscs",
         "tags",
         "exclude_tags",
         "urls",
@@ -237,10 +286,13 @@ async def find_messages(
                     conditions.append(column != None)  # noqa
                 else:
                     conditions.append(column == None)  # noqa
-            elif key in (
+            elif key in {
                 "tags",
+                "systems",
+                "subsystems",
+                "cscs",
                 "urls",
-            ):
+            }:
                 # Field is an array and value is a list. Field name is the key.
                 # Return messages for which any item in the array matches
                 # matches any item in "value" (PostgreSQL's && operator).
@@ -255,18 +307,25 @@ async def find_messages(
                 #   postgres-specific ARRAY field requires casting lists.
                 column = message_table.columns[key]
                 conditions.append(column.op("&&")(value))
-            elif key == "exclude_tags":
-                # Value is a list; field name is the key.
+            elif key in {
+                "exclude_tags",
+                "exclude_systems",
+                "exclude_subsystems",
+                "exclude_cscs",
+            }:
+                # Value is a list; field name is the end of the key.
                 # Note: the list cannot be empty, because the array is passed
                 # by listing the parameter once per value.
-                column = message_table.columns["tags"]
+                column_name = key[8:]
+                column = message_table.columns[column_name]
                 conditions.append(sa.sql.not_(column.op("&&")(value)))
-            elif key in (
+            elif key in {
                 "site_ids",
                 "instruments",
+                "systems",
                 "user_ids",
                 "user_agents",
-            ):
+            }:
                 # Value is a list; field name is key without the final "s".
                 # Note: the list cannot be empty, because the array is passed
                 # by listing the parameter once per value.
@@ -275,7 +334,7 @@ async def find_messages(
             elif key in ("message_text",):
                 column = message_table.columns[key]
                 conditions.append(column.contains(value))
-            elif key in ("is_human", "is_valid"):
+            elif key in {"is_human", "is_valid"}:
                 if value != TriState.either:
                     logical_value = value == TriState.true
                     column = message_table.columns[key]

@@ -50,6 +50,18 @@ class Message(pydantic.BaseModel):
     parent_id: None | uuid.UUID = pydantic.Field(
         title="Message ID of message this is an edited version of."
     )
+    # Added 2022-07-19
+    systems: list[str] = pydantic.Field(
+        title="Zero or more system names.",
+    )
+    subsystems: list[str] = pydantic.Field(
+        title="Zero or more subsystem names."
+    )
+    cscs: list[str] = pydantic.Field(
+        title="Zero or more CSCs names. "
+        "Each entry should be in the form 'name' or 'name:index', "
+        "where 'name' is the SAL component name and 'index' is the SAL index."
+    )
 
     class Config:
         orm_mode = True

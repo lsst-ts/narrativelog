@@ -28,13 +28,34 @@ async def edit_message(
     | list[str] = fastapi.Body(
         default=None,
         description="Tags describing the message, as space-separated words. "
-        "If specified, replaces the existing set of tags. " + TAG_DESCRIPTION,
+        "If specified, replaces all existing entries. " + TAG_DESCRIPTION,
+    ),
+    systems: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Zero or more systems to which the message applied. "
+        "If specified, replaces all existing entries.",
+    ),
+    subsystems: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Zero or more subsystems to which the message applies. "
+        "If specified, replaces all existing entries.",
+    ),
+    cscs: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Zero or more CSCs to which the message applies. "
+        "Each entry should be in the form 'name' or 'name:index', "
+        "where 'name' is the SAL component name and 'index' is the SAL index. "
+        "If specified, replaces all existing entries.",
     ),
     urls: None
     | list[str] = fastapi.Body(
         default=None,
         description="URLs of associated JIRA tickets, screen shots, etc.: "
-        "space-separated. If specified, replaces the existing set.",
+        "space-separated. "
+        "If specified, replaces all existing entries.",
     ),
     time_lost: None
     | datetime.timedelta = fastapi.Body(
@@ -84,6 +105,9 @@ async def edit_message(
         "message_text",
         "level",
         "tags",
+        "systems",
+        "subsystems",
+        "cscs",
         "urls",
         "time_lost",
         "date_user_specified",
