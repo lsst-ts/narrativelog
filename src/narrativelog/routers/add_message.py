@@ -26,8 +26,21 @@ async def add_message(
     ),
     tags: list[str] = fastapi.Body(
         default=[],
-        description="Tags describing the message, as space-separated words. "
-        + TAG_DESCRIPTION,
+        description="Tags describing the message. " + TAG_DESCRIPTION,
+    ),
+    systems: list[str] = fastapi.Body(
+        default=[],
+        description="Zero or more systems to which the message applies.",
+    ),
+    subsystems: list[str] = fastapi.Body(
+        default=[],
+        description="Zero or more subsystems to which the message applies",
+    ),
+    cscs: list[str] = fastapi.Body(
+        default=[],
+        description="Zero or more CSCs to which the message applies. "
+        "Each entry should be in the form 'name' or 'name:index', "
+        "where 'name' is the SAL component name and 'index' is the SAL index.",
     ),
     urls: list[str] = fastapi.Body(
         default=[],
@@ -90,6 +103,9 @@ async def add_message(
                 user_agent=user_agent,
                 is_human=is_human,
                 date_added=curr_tai.tai.datetime,
+                systems=systems,
+                subsystems=subsystems,
+                cscs=cscs,
             )
             .returning(sa.literal_column("*"))
         )

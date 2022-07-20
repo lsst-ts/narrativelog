@@ -74,6 +74,9 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
                 user_id="new user_id",
                 user_agent="new user_agent",
                 is_human=True,
+                systems=["new system 1", "new system 2"],
+                subsystems=["new subsystem 1", "new subsystem 2"],
+                cscs=["ATDome", "ScriptQueue:1"],
             )
             # Repeatedly edit the old message. Each time
             # add a new version of the message with one field omitted,

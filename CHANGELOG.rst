@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+0.3.0
+-----
+
+* Add columns `systems`, `subsystems`, and `cscs`.
+
 0.2.4
 -----
 

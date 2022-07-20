@@ -2,6 +2,9 @@ __all__ = [
     "TEST_SITE_ID",
     "TEST_TAGS",
     "TEST_URLS",
+    "TEST_SYSTEMS",
+    "TEST_SUBSYSTEMS",
+    "TEST_CSCS",
     "MessageDictT",
     "assert_good_response",
     "assert_messages_equal",
@@ -43,6 +46,11 @@ TEST_URLS = [
     "https://jira.lsstcorp.org/browse/DM-5",
     "https://jira.lsstcorp.org/browse/DM-7",
 ]
+TEST_SYSTEMS = [f"system{n}" for n in range(10)]
+TEST_SUBSYSTEMS = [f"subsystem{n}" for n in range(20)]
+TEST_CSCS = (
+    "ATDome ATMCS ESS MTDome MTHexapod:1 MTHexapod:2 MTMount MTM1M3".split()
+)
 
 # Type annotation aliases
 MessageDictT = dict[str, typing.Any]
@@ -289,24 +297,24 @@ def random_str(nchar: int) -> str:
     return "".join(random.sample(chars, nchar))
 
 
-def random_words(words: list[str], max_num: int = 3) -> list[str]:
-    """Return a list of 0 or more words.
+def random_strings(words: list[str], max_num: int = 3) -> list[str]:
+    """Return a list of 0 or more strings from a list of strings.
 
     Parameters
     ----------
-    words
-        List of words from which to select words.
+    strings
+        List of strings from which to select returned strings.
     max_num
-        The maximum number of returned words.
+        The maximum number of returned strings.
 
     Half of the time it will return 0 items.
     The rest of the time it will return 1 - max_num values
-    in random order, with equal probability per number of returned words.
+    in random order, with equal probability per number of returned strings.
     """
     if random.random() < 0.5:
         return []
-    num_words = random.randint(1, max_num)
-    return random.sample(words, num_words)
+    num_to_return = random.randint(1, max_num)
+    return random.sample(words, num_to_return)
 
 
 def random_message() -> MessageDictT:
@@ -345,8 +353,8 @@ def random_message() -> MessageDictT:
         site_id=TEST_SITE_ID,
         message_text=random_str(nchar=20),
         level=random.randint(0, 40),
-        tags=random_words(TEST_TAGS),
-        urls=random_words(TEST_URLS),
+        tags=random_strings(TEST_TAGS),
+        urls=random_strings(TEST_URLS),
         time_lost=random_duration(),
         date_user_specified=date_user_specified,
         user_id=random_str(nchar=14),
@@ -356,6 +364,10 @@ def random_message() -> MessageDictT:
         date_added=random_date(),
         date_invalidated=None,
         parent_id=None,
+        # Added 2022-07-19
+        systems=random_strings(TEST_SYSTEMS),
+        subsystems=random_strings(TEST_SUBSYSTEMS),
+        cscs=random_strings(TEST_CSCS),
     )
 
     # Check that we have set all fields (not necessarily in order).
