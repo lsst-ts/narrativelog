@@ -343,10 +343,16 @@ def random_message() -> MessageDictT:
       * Set parent_message["date_invalidated"] =
         edited_message["date_added"]
     """
-    if random.random() > 0.5:
-        date_user_specified = random_date()
-    else:
-        date_user_specified = None
+    random_value = random.random()
+    date_begin = None
+    date_end = None
+    if random_value > 0.75:
+        date_begin = random_date()
+        date_end = date_begin + random_duration()
+    elif random_value > 0.5:
+        date_end = random_date()
+    elif random_value > 0.25:
+        date_begin = random_date()
 
     message = dict(
         id=None,
@@ -356,7 +362,7 @@ def random_message() -> MessageDictT:
         tags=random_strings(TEST_TAGS),
         urls=random_strings(TEST_URLS),
         time_lost=random_duration(),
-        date_user_specified=date_user_specified,
+        date_begin=date_begin,
         user_id=random_str(nchar=14),
         user_agent=random_str(nchar=12),
         is_human=random_bool(),
@@ -368,6 +374,8 @@ def random_message() -> MessageDictT:
         systems=random_strings(TEST_SYSTEMS),
         subsystems=random_strings(TEST_SUBSYSTEMS),
         cscs=random_strings(TEST_CSCS),
+        # Added 2022-07-27
+        date_end=date_end,
     )
 
     # Check that we have set all fields (not necessarily in order).

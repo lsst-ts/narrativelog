@@ -125,16 +125,29 @@ async def find_messages(
     | datetime.timedelta = fastapi.Query(
         default=None, description="Maximum time lost."
     ),
-    has_date_user_specified: None
+    has_date_begin: None
     | bool = fastapi.Query(
         default=None,
-        description="Does this message have a non-null date_user_specified?",
+        description="Does this message have a non-null date_begin?",
     ),
-    min_date_user_specified: None
+    min_date_begin: None
     | datetime.datetime = fastapi.Query(
         default=None, description="Minimum user-specified TAI date."
     ),
-    max_date_user_specified: None
+    max_date_begin: None
+    | datetime.datetime = fastapi.Query(
+        default=None, description="Maximum user-specified TAI date."
+    ),
+    has_date_end: None
+    | bool = fastapi.Query(
+        default=None,
+        description="Does this message have a non-null date_end?",
+    ),
+    min_date_end: None
+    | datetime.datetime = fastapi.Query(
+        default=None, description="Minimum user-specified TAI date."
+    ),
+    max_date_end: None
     | datetime.datetime = fastapi.Query(
         default=None, description="Maximum user-specified TAI date."
     ),
@@ -221,9 +234,12 @@ async def find_messages(
         "urls",
         "min_time_lost",
         "max_time_lost",
-        "has_date_user_specified",
-        "min_date_user_specified",
-        "max_date_user_specified",
+        "has_date_begin",
+        "min_date_begin",
+        "max_date_begin",
+        "has_date_end",
+        "min_date_end",
+        "max_date_end",
         "is_human",
         "is_valid",
         "min_date_added",

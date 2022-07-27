@@ -185,7 +185,13 @@ class AlembicMigrationTestCase(unittest.IsolatedAsyncioTestCase):
                 assert set(table_names) == {"alembic_version"}
 
     async def test_old_message_table(self) -> None:
-        new_columns = {"systems", "subsystems", "cscs"}
+        new_columns = {
+            "systems",
+            "subsystems",
+            "cscs",
+            "date_begin",
+            "date_end",
+        }
         async with create_database() as engine:
             old_message_table = create_old_message_table()
             async with engine.begin() as connection:

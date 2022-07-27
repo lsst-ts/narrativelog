@@ -1,4 +1,5 @@
 import http
+import itertools
 import random
 import unittest
 
@@ -70,7 +71,8 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             add_args_full["tags"] = shuffled_test_tags
             add_args_full["urls"] = shuffled_test_urls
             add_args_full["time_lost"] = 1234  # seconds
-            add_args_full["date_user_specified"] = "2020-01-04T16:41:24"
+            add_args_full["date_begin"] = "2020-01-04T16:41:24"
+            add_args_full["date_end"] = "2020-01-04T17:11:12"
             add_args_full["systems"] = ["a system", "another system"]
             add_args_full["subsystems"] = ["a subsystem", "another subsystem"]
             add_args_full["cscs"] = ["MTHexapod:1", "MTRotator"]
@@ -106,7 +108,7 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             # but I have not found that documented,
             # so accept anything in the 400s.
             optional_fields = frozenset(
-                ["tags", "urls", "time_lost", "date_user_specified"]
+                ["tags", "urls", "time_lost", "date_begin", "date_end"]
             )
             for key in add_args:
                 if key in optional_fields:
@@ -118,17 +120,20 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
                 )
                 assert 400 <= response.status_code < 500
 
-            # Error: date_user_specified must not specify a time zone
-            for timezone_suffix in (
-                "Z",
-                "+00",
-                "+02",
-                "-03",
-                "+04:00",
-                "-06:00",
+            # Error: date_begin and date_end must not specify a time zone
+            for field_name, timezone_suffix in itertools.product(
+                ("date_begin", "date_end"),
+                (
+                    "Z",
+                    "+00",
+                    "+02",
+                    "-03",
+                    "+04:00",
+                    "-06:00",
+                ),
             ):
                 bad_add_args = add_args_full.copy()
-                bad_add_args["date_user_specified"] += timezone_suffix  # type: ignore
+                bad_add_args[field_name] += timezone_suffix  # type: ignore
                 response = await client.post(
                     "/narrativelog/messages", json=bad_add_args
                 )

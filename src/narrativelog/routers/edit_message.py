@@ -61,10 +61,10 @@ async def edit_message(
     | datetime.timedelta = fastapi.Body(
         default=None, description="Estimate of lost on-sky time."
     ),
-    date_user_specified: None
+    date_begin: None
     | datetime.datetime = fastapi.Body(
         default=None,
-        description="Approximate TAI date at which this message is relevant "
+        description="Approximate initial TAI date at which this message is relevant "
         "(if different than the time at which the message was specified)",
     ),
     site_id: None | str = fastapi.Body(default=None, description="Site ID"),
@@ -110,7 +110,7 @@ async def edit_message(
         "cscs",
         "urls",
         "time_lost",
-        "date_user_specified",
+        "date_begin",
         "site_id",
         "user_id",
         "user_agent",
