@@ -27,8 +27,8 @@ class Message(pydantic.BaseModel):
     time_lost: datetime.timedelta = pydantic.Field(
         title="Estimate of lost on-sky time."
     )
-    date_user_specified: None | datetime.datetime = pydantic.Field(
-        title="Approximate TAI date at which this message is relevant "
+    date_begin: None | datetime.datetime = pydantic.Field(
+        title="Approximate initial TAI date at which the message is relevant "
         "(if different than the time at which the message was specified)"
     )
     user_id: str = pydantic.Field(title="User ID.")
@@ -61,6 +61,10 @@ class Message(pydantic.BaseModel):
         title="Zero or more CSCs names. "
         "Each entry should be in the form 'name' or 'name:index', "
         "where 'name' is the SAL component name and 'index' is the SAL index."
+    )
+    # Added 2022-07-27
+    date_end: None | datetime.datetime = pydantic.Field(
+        title="Approximate final TAI date at which the message is relevant"
     )
 
     class Config:

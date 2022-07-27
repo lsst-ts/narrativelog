@@ -25,7 +25,7 @@ def create_message_table() -> sa.Table:
         sa.Column("tags", saty.ARRAY(sa.Text), nullable=False),
         sa.Column("urls", saty.ARRAY(sa.Text), nullable=False),
         sa.Column("time_lost", saty.Interval(), nullable=False),
-        sa.Column("date_user_specified", saty.DateTime(), nullable=True),
+        sa.Column("date_begin", saty.DateTime(), nullable=True),
         sa.Column("user_id", saty.String(), nullable=False),
         sa.Column("user_agent", saty.String(), nullable=False),
         sa.Column("is_human", saty.Boolean(), nullable=False),
@@ -42,6 +42,8 @@ def create_message_table() -> sa.Table:
         sa.Column("systems", saty.ARRAY(sa.Text), nullable=False),
         sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=False),
         sa.Column("cscs", saty.ARRAY(sa.Text), nullable=False),
+        # Added 2022-07-37
+        sa.Column("date_end", saty.DateTime(), nullable=True),
         # Constraints
         sa.ForeignKeyConstraint(["parent_id"], ["message.id"]),
     )

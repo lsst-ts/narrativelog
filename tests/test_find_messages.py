@@ -334,7 +334,8 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
 
             # has_<field> arguments (for fields that may be null).
             for field in (
-                "date_user_specified",
+                "date_begin",
+                "date_end",
                 "date_invalidated",
                 "parent_id",
             ):

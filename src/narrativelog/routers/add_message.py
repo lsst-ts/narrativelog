@@ -51,11 +51,19 @@ async def add_message(
         default=datetime.timedelta(),
         description="Estimate of lost on-sky time. Defaults to 0.",
     ),
-    date_user_specified: None
+    date_begin: None
     | datetime.datetime = fastapi.Body(
         default=None,
-        description="Approximate TAI date at which this message is relevant "
+        description="Approximate initial TAI date "
+        "at which is relevant "
         "(if different than the time at which the message was specified). "
+        "Specify as an ISO 8601 string with no time zone suffix (not even Z).",
+    ),
+    date_end: None
+    | datetime.datetime = fastapi.Body(
+        default=None,
+        description="Approximate final TAI date "
+        "at which is relevant. "
         "Specify as an ISO 8601 string with no time zone suffix (not even Z).",
     ),
     user_id: str = fastapi.Body(..., description="User ID"),
@@ -72,16 +80,20 @@ async def add_message(
     """Add a message to the database and return the added message."""
     curr_tai = astropy.time.Time.now()
 
-    if date_user_specified and date_user_specified.tzinfo is not None:
-        # Note:  I don't know how to make the router accept dates with
-        # any time zone other than None (no suffix, good) or UTC
-        # (suffix Z, bad because UTC is not TAI).
-        # Appending ±hh.mm is rejected before the router runs.
-        # But in any case reject all time zones.
-        raise fastapi.HTTPException(
-            status_code=http.HTTPStatus.BAD_REQUEST,
-            detail="date_user_specified must not have a time zone suffix",
-        )
+    for date_arg, date_arg_name in (
+        (date_begin, "date_begin"),
+        (date_end, "date_end"),
+    ):
+        if date_arg is not None and date_arg.tzinfo is not None:
+            # Note:  I don't know how to make the router accept dates with
+            # any time zone other than None (no suffix, good) or UTC
+            # (suffix Z, bad because UTC is not TAI).
+            # Appending ±hh.mm is rejected before the router runs.
+            # But in any case reject all time zones.
+            raise fastapi.HTTPException(
+                status_code=http.HTTPStatus.BAD_REQUEST,
+                detail=f"{date_arg_name} must not have a time zone suffix",
+            )
 
     tags = normalize_tags(tags)
 
@@ -98,7 +110,8 @@ async def add_message(
                 tags=tags,
                 urls=urls,
                 time_lost=time_lost,
-                date_user_specified=date_user_specified,
+                date_begin=date_begin,
+                date_end=date_end,
                 user_id=user_id,
                 user_agent=user_agent,
                 is_human=is_human,
