@@ -2,10 +2,16 @@
 Change Log
 ==========
 
+0.4.0
+-----
+
+* Rename column ``date_user_specified`` to ``date_begin``.
+* Add column ``date_end``.
+
 0.3.0
 -----
 
-* Add columns `systems`, `subsystems`, and `cscs`.
+* Add columns ``systems``, ``subsystems``, and ``cscs``.
 
 0.2.4
 -----
