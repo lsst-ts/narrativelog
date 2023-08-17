@@ -50,6 +50,27 @@ async def edit_message(
         "where 'name' is the SAL component name and 'index' is the SAL index. "
         "If specified, replaces all existing entries.",
     ),
+    components: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Zero or more components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "If specified, replaces all existing entries.",
+    ),
+    primary_software_components: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Primary software components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "If specified, replaces all existing entries.",
+    ),
+    primary_hardware_components: None
+    | list[str] = fastapi.Body(
+        default=None,
+        description="Primary hardware components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "If specified, replaces all existing entries.",
+    ),
     urls: None
     | list[str] = fastapi.Body(
         default=None,
@@ -93,6 +114,7 @@ async def edit_message(
     - Set timestamp_is_valid_changed=now on the parent message.
     """
     message_table = state.narrativelog_db.message_table
+    jira_fields_table = state.narrativelog_db.jira_fields_table
 
     parent_id = id
     old_site_id = site_id
@@ -108,6 +130,9 @@ async def edit_message(
         "systems",
         "subsystems",
         "cscs",
+        "components",
+        "primary_software_components",
+        "primary_hardware_components",
         "urls",
         "time_lost",
         "date_begin",
@@ -116,40 +141,75 @@ async def edit_message(
         "user_agent",
         "is_human",
     ):
-
         value = locals()[name]
         if value is not None:
             request_data[name] = value
 
     async with state.narrativelog_db.engine.begin() as connection:
         # Find the parent message.
-        get_parent_result = await connection.execute(
+        get_parent_message_result = await connection.execute(
             message_table.select()
             .where(message_table.c.id == parent_id)
             .with_for_update()
         )
-        parent_row = get_parent_result.fetchone()
-        if parent_row is None:
+        parent_message_row = get_parent_message_result.fetchone()
+        if parent_message_row is None:
             raise fastapi.HTTPException(
                 status_code=http.HTTPStatus.NOT_FOUND,
                 detail=f"Message with id={parent_id} not found",
             )
 
-        # Add and get the new message.
-        new_data = dict(parent_row._mapping).copy()
-        new_data.update(request_data)
-        for field in ("id", "is_valid", "date_invalidated"):
-            del new_data[field]
-        current_tai = astropy.time.Time.now().tai.datetime
-        new_data["site_id"] = state.site_id
-        new_data["date_added"] = current_tai
-        new_data["parent_id"] = parent_id
-        add_row = await connection.execute(
-            message_table.insert()
-            .values(**new_data)
+        # Find the parent jira_fields
+        get_parent_jira_fields_result = await connection.execute(
+            jira_fields_table.select()
+            .where(jira_fields_table.c.id == parent_message_row.jira_fields_id)
+            .with_for_update()
+        )
+        parent_jira_fields_row = get_parent_jira_fields_result.fetchone()
+
+        # Add new jira_fields
+        jira_update_params = {
+            "components",
+            "primary_software_components",
+            "primary_hardware_components",
+        }
+        new_jira_fields_data = parent_jira_fields_row._asdict().copy()
+        new_jira_fields_data.update(
+            {k: v for k, v in request_data.items() if k in jira_update_params}
+        )
+        for field in {"id"}:
+            del new_jira_fields_data[field]
+
+        add_jira_fields_row_result = await connection.execute(
+            jira_fields_table.insert()
+            .values(**new_jira_fields_data)
             .returning(sa.literal_column("*"))
         )
-        add_row = add_row.fetchone()
+        row_jira_fields = add_jira_fields_row_result.fetchone()
+
+        # Add new message.
+        message_update_params = set(request_data.keys()) - jira_update_params
+        new_message_data = parent_message_row._asdict().copy()
+        new_message_data.update(
+            {
+                k: v
+                for k, v in request_data.items()
+                if k in message_update_params
+            }
+        )
+        for field in ("id", "is_valid", "date_invalidated"):
+            del new_message_data[field]
+        current_tai = astropy.time.Time.now().tai.datetime
+        new_message_data["site_id"] = state.site_id
+        new_message_data["date_added"] = current_tai
+        new_message_data["parent_id"] = parent_id
+        new_message_data["jira_fields_id"] = row_jira_fields.id
+        add_row_result = await connection.execute(
+            message_table.insert()
+            .values(**new_message_data)
+            .returning(sa.literal_column("*"))
+        )
+        row_message = add_row_result.fetchone()
 
         # Mark the parent message as invalid.
         await connection.execute(
@@ -158,4 +218,9 @@ async def edit_message(
             .values(date_invalidated=current_tai)
         )
 
-    return Message.from_orm(add_row)
+    row = dict()
+    row.update(row_message)
+    row.update(
+        {k: v for k, v in row_jira_fields._asdict().items() if k != "id"}
+    )
+    return Message.model_validate(row)

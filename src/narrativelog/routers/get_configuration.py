@@ -12,7 +12,7 @@ class Config(pydantic.BaseModel):
     site_id: str = pydantic.Field(title="Site ID.")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 @router.get("/configuration", response_model=Config)

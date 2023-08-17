@@ -1,4 +1,8 @@
-__all__ = ["SITE_ID_LEN", "create_message_table"]
+__all__ = [
+    "SITE_ID_LEN",
+    "create_message_table",
+    "create_jira_fields_table",
+]
 
 import uuid
 
@@ -10,11 +14,11 @@ from sqlalchemy.dialects.postgresql import UUID
 SITE_ID_LEN = 16
 
 
-def create_message_table() -> sa.Table:
+def create_message_table(metadata: sa.MetaData) -> sa.Table:
     """Make a model of the narrativelog message table."""
     table = sa.Table(
         "message",
-        sa.MetaData(),
+        metadata,
         # See https://stackoverflow.com/a/49398042 for UUID:
         sa.Column(
             "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -44,8 +48,11 @@ def create_message_table() -> sa.Table:
         sa.Column("cscs", saty.ARRAY(sa.Text), nullable=False),
         # Added 2022-07-37
         sa.Column("date_end", saty.DateTime(), nullable=True),
+        # Added 2023-08-11
+        sa.Column("jira_fields_id", UUID(as_uuid=True), nullable=True),
         # Constraints
         sa.ForeignKeyConstraint(["parent_id"], ["message.id"]),
+        sa.ForeignKeyConstraint(["jira_fields_id"], ["jira_fields.id"]),
     )
 
     for name in (
@@ -57,5 +64,25 @@ def create_message_table() -> sa.Table:
         "date_added",
     ):
         sa.Index(f"idx_{name}", table.columns[name])
+
+    return table
+
+
+def create_jira_fields_table(metadata: sa.MetaData) -> sa.Table:
+    """Make a model of the narrativelog jira fields table."""
+    table = sa.Table(
+        "jira_fields",
+        metadata,
+        sa.Column(
+            "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        ),
+        sa.Column("components", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column(
+            "primary_software_components", saty.ARRAY(sa.Text), nullable=False
+        ),
+        sa.Column(
+            "primary_hardware_components", saty.ARRAY(sa.Text), nullable=False
+        ),
+    )
 
     return table

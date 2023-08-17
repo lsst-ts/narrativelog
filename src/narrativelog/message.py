@@ -66,9 +66,22 @@ class Message(pydantic.BaseModel):
     date_end: None | datetime.datetime = pydantic.Field(
         title="Approximate final TAI date at which the message is relevant"
     )
+    # Added 2023-08-10
+    components: list[str] = pydantic.Field(
+        title="Zero or more component names. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    )
+    primary_software_components: list[str] = pydantic.Field(
+        title="Zero or more primary software component names. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    )
+    primary_hardware_components: list[str] = pydantic.Field(
+        title="Zero or more primary hardware component names. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    )
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 MESSAGE_FIELDS = tuple(Message.schema()["properties"].keys())

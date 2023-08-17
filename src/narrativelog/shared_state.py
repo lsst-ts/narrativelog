@@ -6,7 +6,13 @@ import logging
 import os
 import urllib
 
-from .create_message_table import SITE_ID_LEN, create_message_table
+import sqlalchemy as sa
+
+from .create_tables import (
+    SITE_ID_LEN,
+    create_jira_fields_table,
+    create_message_table,
+)
 from .log_message_database import LogMessageDatabase
 
 _shared_state: None | SharedState = None
@@ -85,9 +91,11 @@ class SharedState:
                 f"SITE_ID={self.site_id!r} too long; max length={SITE_ID_LEN}"
             )
         self.log = logging.getLogger("narrativelog")
-
+        self.metadata = sa.MetaData()
         self.narrativelog_db = LogMessageDatabase(
-            message_table=create_message_table(), url=create_db_url()
+            message_table=create_message_table(self.metadata),
+            jira_fields_table=create_jira_fields_table(self.metadata),
+            url=create_db_url(),
         )
 
 

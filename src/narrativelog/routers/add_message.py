@@ -42,6 +42,21 @@ async def add_message(
         "Each entry should be in the form 'name' or 'name:index', "
         "where 'name' is the SAL component name and 'index' is the SAL index.",
     ),
+    components: list[str] = fastapi.Body(
+        default=[],
+        description="Zero or more components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    primary_software_components: list[str] = fastapi.Body(
+        default=[],
+        description="Primary software components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    primary_hardware_components: list[str] = fastapi.Body(
+        default=[],
+        description="Primary hardware components to which the message applies. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
     urls: list[str] = fastapi.Body(
         default=[],
         description="URLs of associated JIRA tickets, screen shots, etc.: "
@@ -98,10 +113,28 @@ async def add_message(
     tags = normalize_tags(tags)
 
     message_table = state.narrativelog_db.message_table
-
-    # Add the message.
+    jira_fields_table = state.narrativelog_db.jira_fields_table
     async with state.narrativelog_db.engine.begin() as connection:
-        result = await connection.execute(
+        # Add the jira fields
+        result_jira_fields = await connection.execute(
+            jira_fields_table.insert()
+            .values(
+                components=components,
+                primary_software_components=primary_software_components,
+                primary_hardware_components=primary_hardware_components,
+            )
+            .returning(sa.literal_column("*"))
+        )
+        row_jira_fields = result_jira_fields.fetchone()
+
+        if row_jira_fields is None:
+            raise fastapi.HTTPException(
+                status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+                detail="Couldn't create jira_fields entry for message",
+            )
+
+        # Add the message.
+        result_message = await connection.execute(
             message_table.insert()
             .values(
                 site_id=state.site_id,
@@ -119,9 +152,22 @@ async def add_message(
                 systems=systems,
                 subsystems=subsystems,
                 cscs=cscs,
+                jira_fields_id=row_jira_fields.id,
             )
             .returning(sa.literal_column("*"))
         )
-        result = result.fetchone()
+        row_message = result_message.fetchone()
 
-    return Message.from_orm(result)
+        if row_message is None:
+            raise fastapi.HTTPException(
+                status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+                detail="Couldn't create message entry",
+            )
+
+        row = dict()
+        row.update(row_message)
+        # Add the jira fields
+        row.update(
+            {k: v for k, v in row_jira_fields._asdict().items() if k != "id"}
+        )
+        return Message.model_validate(row)

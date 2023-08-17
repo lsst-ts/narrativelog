@@ -24,7 +24,9 @@ class LogMessageDatabase:
         postgresql://[user[:password]@][netloc][:port][/dbname]
     """
 
-    def __init__(self, message_table: sa.Table, url: str):
+    def __init__(
+        self, message_table: sa.Table, jira_fields_table: sa.Table, url: str
+    ):
         self._closed = False
         self.url = url
         self.logger = structlog.get_logger("LogMessageDatabase")
@@ -32,6 +34,7 @@ class LogMessageDatabase:
         sa_url = sa_url.set(drivername="postgresql+asyncpg")
         self.engine = create_async_engine(sa_url, future=True)
         self.message_table = message_table
+        self.jira_fields_table = jira_fields_table
         self.start_task = asyncio.create_task(self.start())
 
     async def start(self) -> None:
