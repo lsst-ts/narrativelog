@@ -6,11 +6,11 @@
 #     make update-deps
 
 click~=8.0
-black==22.3.0
+black==23.3.0
 coverage[toml]~=6.3
 flake8~=4.0
 httpx~=0.22
-mypy==0.950
+mypy==1.4.0
 pre-commit~=2.19
 pytest~=7.1
 testing.postgresql~=1.3
