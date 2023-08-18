@@ -15,10 +15,11 @@ class GetMessageTestCase(unittest.IsolatedAsyncioTestCase):
             client,
             messages,
         ):
-            id = messages[2]["id"]
+            chosen_message = messages[2]
+            id = chosen_message["id"]
             response = await client.get(f"/narrativelog/messages/{id}")
             message = assert_good_response(response)
-            assert_messages_equal(message, messages[2])
+            assert_messages_equal(message, chosen_message)
 
             # Test that a non-existent message returns NOT_FOUND
             bad_id = uuid.uuid4()
