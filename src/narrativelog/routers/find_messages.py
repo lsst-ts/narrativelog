@@ -389,9 +389,6 @@ async def find_messages(
                 "exclude_systems",
                 "exclude_subsystems",
                 "exclude_cscs",
-                "exclude_components",
-                "exclude_primary_software_components",
-                "exclude_primary_hardware_components",
             }:
                 # Value is a list; field name is the end of the key.
                 # Note: the list cannot be empty, because the array is passed
@@ -445,4 +442,4 @@ async def find_messages(
         )
         rows = result.fetchall()
 
-        return [Message.model_validate(row) for row in rows]
+        return [Message.from_orm(row) for row in rows]

@@ -218,9 +218,14 @@ async def edit_message(
             .values(date_invalidated=current_tai)
         )
 
-    row = dict()
-    row.update(row_message)
-    row.update(
-        {k: v for k, v in row_jira_fields._asdict().items() if k != "id"}
-    )
-    return Message.model_validate(row)
+        # Find the message and join with jira_fields
+        result_message_joined = await connection.execute(
+            message_table
+            # Join with jira_fields_table
+            .join(jira_fields_table, isouter=True)
+            .select()
+            .where(message_table.c.id == row_message.id)
+        )
+        row = result_message_joined.fetchone()
+
+    return Message.from_orm(row)

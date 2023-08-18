@@ -27,11 +27,12 @@ import astropy.time
 import httpx
 import sqlalchemy.engine
 import testing.postgresql
+from sqlalchemy import MetaData, literal_column
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from . import main, shared_state
-from .create_message_table import create_message_table
-from .message import MESSAGE_FIELDS
+from .create_tables import create_jira_fields_table, create_message_table
+from .message import JIRA_FIELDS, MESSAGE_FIELDS
 
 # Range of dates for random messages.
 MIN_DATE_RANDOM_MESSAGE = "2021-01-01"
@@ -51,6 +52,13 @@ TEST_SUBSYSTEMS = [f"subsystem{n}" for n in range(20)]
 TEST_CSCS = (
     "ATDome ATMCS ESS MTDome MTHexapod:1 MTHexapod:2 MTMount MTM1M3".split()
 )
+TEST_COMPONENTS = [f"component{n}" for n in range(10)]
+TEST_PRIMARY_SOFTWARE_COMPONENTS = [
+    f"primary_software_component{n}" for n in range(10)
+]
+TEST_PRIMARY_HARDWARE_COMPONENTS = [
+    f"primary_hardware_component{n}" for n in range(10)
+]
 
 # Type annotation aliases
 MessageDictT = dict[str, typing.Any]
@@ -376,10 +384,18 @@ def random_message() -> MessageDictT:
         cscs=random_strings(TEST_CSCS),
         # Added 2022-07-27
         date_end=date_end,
+        # Added 2023-08-10
+        components=random_strings(TEST_COMPONENTS),
+        primary_software_components=random_strings(
+            TEST_PRIMARY_SOFTWARE_COMPONENTS
+        ),
+        primary_hardware_components=random_strings(
+            TEST_PRIMARY_HARDWARE_COMPONENTS
+        ),
     )
 
     # Check that we have set all fields (not necessarily in order).
-    assert set(message) == set(MESSAGE_FIELDS)
+    assert set(message) == (set(MESSAGE_FIELDS) | set(JIRA_FIELDS))
 
     return message
 
@@ -462,26 +478,57 @@ async def create_test_database(
     sa_url = sa_url.set(drivername="postgresql+asyncpg")
     engine = create_async_engine(sa_url, future=True)
 
-    table = create_message_table()
+    sa_metadata = MetaData()
+    table_message = create_message_table(sa_metadata)
+    table_jira_fields = create_jira_fields_table(sa_metadata)
     async with engine.begin() as connection:
-        await connection.run_sync(table.metadata.create_all)
+        # await connection.run_sync(table_message.metadata.create_all)
+        await connection.run_sync(sa_metadata.create_all)
 
     messages = random_messages(
         num_messages=num_messages, num_edited=num_edited
     )
     async with engine.begin() as connection:
         for message in messages:
+            # Insert the jira fields
+            result_jira_fields = await connection.execute(
+                table_jira_fields.insert()
+                .values(
+                    components=message["components"],
+                    primary_software_components=message[
+                        "primary_software_components"
+                    ],
+                    primary_hardware_components=message[
+                        "primary_hardware_components"
+                    ],
+                )
+                .returning(literal_column("*"))
+            )
+            data_jira_fields = result_jira_fields.fetchone()
+            assert data_jira_fields is not None
+
             # Do not insert the "is_valid" field
             # because it is computed.
             pruned_message = message.copy()
             del pruned_message["is_valid"]
-            result = await connection.execute(
-                table.insert()
-                .values(**pruned_message)
-                .returning(table.c.id, table.c.is_valid)
+            # Do not insert "components",
+            # "primary_software_components", or "primary_hardware_components"
+            # because they are in a separate table.
+            del pruned_message["components"]
+            del pruned_message["primary_software_components"]
+            del pruned_message["primary_hardware_components"]
+
+            # Insert the message
+            result_message = await connection.execute(
+                table_message.insert()
+                .values(
+                    **pruned_message,
+                    jira_fields_id=data_jira_fields.id,
+                )
+                .returning(table_message.c.id, table_message.c.is_valid)
             )
-            data = result.fetchone()
-            assert message["id"] == data.id
-            assert message["is_valid"] == data.is_valid
+            data_message = result_message.fetchone()
+            assert message["id"] == data_message.id
+            assert message["is_valid"] == data_message.is_valid
 
     return messages

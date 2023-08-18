@@ -24,7 +24,7 @@ async def get_message(
         result_message = await connection.execute(
             message_table
             # Join with jira_fields_table
-            .join(jira_fields_table)
+            .join(jira_fields_table, isouter=True)
             .select()
             .where(message_table.c.id == id)
         )
@@ -36,4 +36,4 @@ async def get_message(
                 detail=f"No message found with id={id}",
             )
 
-        return Message.model_validate(row)
+        return Message.from_orm(row)

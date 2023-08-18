@@ -157,17 +157,20 @@ async def add_message(
             .returning(sa.literal_column("*"))
         )
         row_message = result_message.fetchone()
-
         if row_message is None:
             raise fastapi.HTTPException(
                 status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 detail="Couldn't create message entry",
             )
 
-        row = dict()
-        row.update(row_message)
-        # Add the jira fields
-        row.update(
-            {k: v for k, v in row_jira_fields._asdict().items() if k != "id"}
+        # Find the message and join with jira_fields
+        result_message_joined = await connection.execute(
+            message_table
+            # Join with jira_fields_table
+            .join(jira_fields_table, isouter=True)
+            .select()
+            .where(message_table.c.id == row_message.id)
         )
-        return Message.model_validate(row)
+        row = result_message_joined.fetchone()
+
+        return Message.from_orm(row)

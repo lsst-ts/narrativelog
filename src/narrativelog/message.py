@@ -3,7 +3,7 @@ __all__ = ["Message", "MESSAGE_FIELDS", "MESSAGE_ORDER_BY_VALUES"]
 import datetime
 import uuid
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 
 
 class Message(BaseModel):
@@ -20,9 +20,6 @@ class Message(BaseModel):
     urls: list[str] = Field(
         title="Zero or more space-separated URLS to JIRA tickets, screen shots, etc."
     )
-    # Note: time_lost is being transformed by default to ISO8601
-    # duration format on model validation. A custom validator is used
-    # to convert to seconds. See validate_time_lost below.
     time_lost: datetime.timedelta = Field(
         title="Estimate of lost on-sky time."
     )
@@ -75,20 +72,19 @@ class Message(BaseModel):
         "Each entry should be a valid component name entry on the OBS jira project.",
     )
 
-    @field_validator("time_lost")
-    @classmethod
-    def validate_time_lost(cls, v: datetime.timedelta) -> int:
-        """Validate time_lost.
-
-        Convert to seconds.
-        """
-        return int(v.total_seconds())
-
     class Config:
+        orm_mode = True
         from_attributes = True
 
 
-MESSAGE_FIELDS = tuple(Message.schema()["properties"].keys())
+JIRA_FIELDS = (
+    "components",
+    "primary_software_components",
+    "primary_hardware_components",
+)
+MESSAGE_FIELDS = tuple(
+    set(Message.schema()["properties"].keys()) - set(JIRA_FIELDS)
+)
 
 
 def _make_message_order_by_values() -> tuple[str, ...]:
