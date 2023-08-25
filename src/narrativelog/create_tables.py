@@ -15,7 +15,18 @@ SITE_ID_LEN = 16
 
 
 def create_message_table(metadata: sa.MetaData) -> sa.Table:
-    """Make a model of the narrativelog message table."""
+    """Make a model of the narrativelog message table.
+
+    Parameters
+    ----------
+    metadata: sa.MetaData
+        SQLAlchemy metadata object.
+
+    Returns
+    -------
+    table: sa.Table
+        SQLAlchemy table object for message.
+    """
     table = sa.Table(
         "message",
         metadata,
@@ -66,7 +77,18 @@ def create_message_table(metadata: sa.MetaData) -> sa.Table:
 
 
 def create_jira_fields_table(metadata: sa.MetaData) -> sa.Table:
-    """Make a model of the narrativelog jira fields table."""
+    """Make a model of the narrativelog jira fields table.
+
+    Parameters
+    ----------
+    metadata: sa.MetaData
+        SQLAlchemy metadata object.
+
+    Returns
+    -------
+    table: sa.Table
+        SQLAlchemy table object for jira_fields.
+    """
     table = sa.Table(
         "jira_fields",
         metadata,

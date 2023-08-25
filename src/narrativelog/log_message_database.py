@@ -11,15 +11,17 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 
 class LogMessageDatabase:
-    """Connection to the narrative log database and message table.
+    """Connection to the narrative log database and tables creation.
 
-    Create the table if it does not exist.
+    Creates message and jira_fields table if they do not exist.
 
     Parameters
     ----------
-    message_table
+    message_table: sa.Table
         Message table.
-    url
+    jira_fields_table: sa.Table
+        Jira fields table.
+    url: str
         URL of narrative log database server in the form:
         postgresql://[user[:password]@][netloc][:port][/dbname]
     """
