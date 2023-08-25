@@ -45,11 +45,11 @@ class Message(BaseModel):
         title="Message ID of message this is an edited version of."
     )
     # Added 2022-07-19
-    systems: list[str] = Field(
+    systems: None | list[str] = Field(
         title="Zero or more system names.",
     )
-    subsystems: list[str] = Field(title="Zero or more subsystem names.")
-    cscs: list[str] = Field(
+    subsystems: None | list[str] = Field(title="Zero or more subsystem names.")
+    cscs: None | list[str] = Field(
         title="Zero or more CSCs names. "
         "Each entry should be in the form 'name' or 'name:index', "
         "where 'name' is the SAL component name and 'index' is the SAL index."
@@ -59,15 +59,15 @@ class Message(BaseModel):
         title="Approximate final TAI date at which the message is relevant"
     )
     # Added 2023-08-10
-    components: list[str] = Field(
+    components: None | list[str] = Field(
         title="Zero or more component names. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     )
-    primary_software_components: list[str] = Field(
+    primary_software_components: None | list[str] = Field(
         title="Zero or more primary software component names. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     )
-    primary_hardware_components: list[str] = Field(
+    primary_hardware_components: None | list[str] = Field(
         title="Zero or more primary hardware component names. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     )

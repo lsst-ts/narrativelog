@@ -77,6 +77,15 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
                 systems=["new system 1", "new system 2"],
                 subsystems=["new subsystem 1", "new subsystem 2"],
                 cscs=["ATDome", "ScriptQueue:1"],
+                components=["new component 1", "new component 2"],
+                primary_software_components=[
+                    "new primary_software_component 1",
+                    "new primary_software_component 2",
+                ],
+                primary_hardware_components=[
+                    "new primary_hardware_component 1",
+                    "new primary_hardware_component 2",
+                ],
             )
             # Repeatedly edit the old message. Each time
             # add a new version of the message with one field omitted,

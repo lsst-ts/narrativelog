@@ -395,6 +395,7 @@ async def find_messages(
                 # by listing the parameter once per value.
                 column_name = key[8:]
                 column = message_table.columns[column_name]
+                conditions.append(sa.sql.not_(column.op("&&")(value)))
             elif key in {
                 "exclude_components",
                 "exclude_primary_software_components",
@@ -433,7 +434,7 @@ async def find_messages(
         result = await connection.execute(
             message_table
             # Join with jira_fields table
-            .join(jira_fields_table)
+            .join(jira_fields_table, isouter=True)
             .select()
             .where(full_conditions)
             .order_by(*order_by_columns)

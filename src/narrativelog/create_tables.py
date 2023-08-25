@@ -43,16 +43,13 @@ def create_message_table(metadata: sa.MetaData) -> sa.Table:
         sa.Column("date_invalidated", saty.DateTime(), nullable=True),
         sa.Column("parent_id", UUID(as_uuid=True), nullable=True),
         # Added 2022-07-19
-        sa.Column("systems", saty.ARRAY(sa.Text), nullable=False),
-        sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=False),
-        sa.Column("cscs", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column("systems", saty.ARRAY(sa.Text), nullable=True),
+        sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=True),
+        sa.Column("cscs", saty.ARRAY(sa.Text), nullable=True),
         # Added 2022-07-37
         sa.Column("date_end", saty.DateTime(), nullable=True),
-        # Added 2023-08-11
-        sa.Column("jira_fields_id", UUID(as_uuid=True), nullable=True),
         # Constraints
         sa.ForeignKeyConstraint(["parent_id"], ["message.id"]),
-        sa.ForeignKeyConstraint(["jira_fields_id"], ["jira_fields.id"]),
     )
 
     for name in (
@@ -76,13 +73,16 @@ def create_jira_fields_table(metadata: sa.MetaData) -> sa.Table:
         sa.Column(
             "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
         ),
-        sa.Column("components", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column("components", saty.ARRAY(sa.Text), nullable=True),
         sa.Column(
-            "primary_software_components", saty.ARRAY(sa.Text), nullable=False
+            "primary_software_components", saty.ARRAY(sa.Text), nullable=True
         ),
         sa.Column(
-            "primary_hardware_components", saty.ARRAY(sa.Text), nullable=False
+            "primary_hardware_components", saty.ARRAY(sa.Text), nullable=True
         ),
+        sa.Column("message_id", UUID(as_uuid=True), nullable=False),
+        # Constraints
+        sa.ForeignKeyConstraint(["message_id"], ["message.id"]),
     )
 
     return table

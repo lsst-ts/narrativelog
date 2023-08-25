@@ -490,23 +490,6 @@ async def create_test_database(
     )
     async with engine.begin() as connection:
         for message in messages:
-            # Insert the jira fields
-            result_jira_fields = await connection.execute(
-                table_jira_fields.insert()
-                .values(
-                    components=message["components"],
-                    primary_software_components=message[
-                        "primary_software_components"
-                    ],
-                    primary_hardware_components=message[
-                        "primary_hardware_components"
-                    ],
-                )
-                .returning(literal_column("*"))
-            )
-            data_jira_fields = result_jira_fields.fetchone()
-            assert data_jira_fields is not None
-
             # Do not insert the "is_valid" field
             # because it is computed.
             pruned_message = message.copy()
@@ -521,14 +504,29 @@ async def create_test_database(
             # Insert the message
             result_message = await connection.execute(
                 table_message.insert()
-                .values(
-                    **pruned_message,
-                    jira_fields_id=data_jira_fields.id,
-                )
+                .values(**pruned_message)
                 .returning(table_message.c.id, table_message.c.is_valid)
             )
             data_message = result_message.fetchone()
             assert message["id"] == data_message.id
             assert message["is_valid"] == data_message.is_valid
+
+            # Insert the jira fields
+            result_jira_fields = await connection.execute(
+                table_jira_fields.insert()
+                .values(
+                    components=message["components"],
+                    primary_software_components=message[
+                        "primary_software_components"
+                    ],
+                    primary_hardware_components=message[
+                        "primary_hardware_components"
+                    ],
+                    message_id=data_message.id,
+                )
+                .returning(literal_column("*"))
+            )
+            data_jira_fields = result_jira_fields.fetchone()
+            assert data_jira_fields is not None
 
     return messages

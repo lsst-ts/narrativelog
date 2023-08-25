@@ -80,9 +80,6 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             add_args_full["time_lost"] = 1234  # seconds
             add_args_full["date_begin"] = "2020-01-04T16:41:24"
             add_args_full["date_end"] = "2020-01-04T17:11:12"
-            # add_args_full["systems"] = ["a system", "another system"]
-            # add_args_full["subsystems"] = ["a subsystem", "another subsystem"]
-            # add_args_full["cscs"] = ["MTHexapod:1", "MTRotator"]
             add_args_full["systems"] = random_strings(TEST_SYSTEMS)
             add_args_full["subsystems"] = random_strings(TEST_SUBSYSTEMS)
             add_args_full["cscs"] = random_strings(TEST_CSCS)

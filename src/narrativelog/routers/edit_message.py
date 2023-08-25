@@ -145,6 +145,12 @@ async def edit_message(
         if value is not None:
             request_data[name] = value
 
+    jira_update_params = {
+        "components",
+        "primary_software_components",
+        "primary_hardware_components",
+    }
+
     async with state.narrativelog_db.engine.begin() as connection:
         # Find the parent message.
         get_parent_message_result = await connection.execute(
@@ -162,30 +168,10 @@ async def edit_message(
         # Find the parent jira_fields
         get_parent_jira_fields_result = await connection.execute(
             jira_fields_table.select()
-            .where(jira_fields_table.c.id == parent_message_row.jira_fields_id)
+            .where(jira_fields_table.c.message_id == parent_id)
             .with_for_update()
         )
         parent_jira_fields_row = get_parent_jira_fields_result.fetchone()
-
-        # Add new jira_fields
-        jira_update_params = {
-            "components",
-            "primary_software_components",
-            "primary_hardware_components",
-        }
-        new_jira_fields_data = parent_jira_fields_row._asdict().copy()
-        new_jira_fields_data.update(
-            {k: v for k, v in request_data.items() if k in jira_update_params}
-        )
-        for field in {"id"}:
-            del new_jira_fields_data[field]
-
-        add_jira_fields_row_result = await connection.execute(
-            jira_fields_table.insert()
-            .values(**new_jira_fields_data)
-            .returning(sa.literal_column("*"))
-        )
-        row_jira_fields = add_jira_fields_row_result.fetchone()
 
         # Add new message.
         message_update_params = set(request_data.keys()) - jira_update_params
@@ -203,13 +189,28 @@ async def edit_message(
         new_message_data["site_id"] = state.site_id
         new_message_data["date_added"] = current_tai
         new_message_data["parent_id"] = parent_id
-        new_message_data["jira_fields_id"] = row_jira_fields.id
         add_row_result = await connection.execute(
             message_table.insert()
             .values(**new_message_data)
             .returning(sa.literal_column("*"))
         )
         row_message = add_row_result.fetchone()
+
+        # Add new jira_fields
+        new_jira_fields_data = parent_jira_fields_row._asdict().copy()
+        new_jira_fields_data.update(
+            {k: v for k, v in request_data.items() if k in jira_update_params}
+        )
+        for field in {"id"}:
+            del new_jira_fields_data[field]
+        new_jira_fields_data["message_id"] = row_message.id
+
+        add_jira_fields_row_result = await connection.execute(
+            jira_fields_table.insert()
+            .values(**new_jira_fields_data)
+            .returning(sa.literal_column("*"))
+        )
+        row_jira_fields = add_jira_fields_row_result.fetchone()
 
         # Mark the parent message as invalid.
         await connection.execute(

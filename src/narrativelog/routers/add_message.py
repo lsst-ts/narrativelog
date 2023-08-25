@@ -28,32 +28,38 @@ async def add_message(
         default=[],
         description="Tags describing the message. " + TAG_DESCRIPTION,
     ),
-    systems: list[str] = fastapi.Body(
-        default=[],
+    systems: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Zero or more systems to which the message applies.",
     ),
-    subsystems: list[str] = fastapi.Body(
-        default=[],
+    subsystems: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Zero or more subsystems to which the message applies",
     ),
-    cscs: list[str] = fastapi.Body(
-        default=[],
+    cscs: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Zero or more CSCs to which the message applies. "
         "Each entry should be in the form 'name' or 'name:index', "
         "where 'name' is the SAL component name and 'index' is the SAL index.",
     ),
-    components: list[str] = fastapi.Body(
-        default=[],
+    components: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Zero or more components to which the message applies. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     ),
-    primary_software_components: list[str] = fastapi.Body(
-        default=[],
+    primary_software_components: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Primary software components to which the message applies. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     ),
-    primary_hardware_components: list[str] = fastapi.Body(
-        default=[],
+    primary_hardware_components: None
+    | list[str] = fastapi.Body(
+        default=None,
         description="Primary hardware components to which the message applies. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     ),
@@ -115,24 +121,6 @@ async def add_message(
     message_table = state.narrativelog_db.message_table
     jira_fields_table = state.narrativelog_db.jira_fields_table
     async with state.narrativelog_db.engine.begin() as connection:
-        # Add the jira fields
-        result_jira_fields = await connection.execute(
-            jira_fields_table.insert()
-            .values(
-                components=components,
-                primary_software_components=primary_software_components,
-                primary_hardware_components=primary_hardware_components,
-            )
-            .returning(sa.literal_column("*"))
-        )
-        row_jira_fields = result_jira_fields.fetchone()
-
-        if row_jira_fields is None:
-            raise fastapi.HTTPException(
-                status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
-                detail="Couldn't create jira_fields entry for message",
-            )
-
         # Add the message.
         result_message = await connection.execute(
             message_table.insert()
@@ -152,7 +140,6 @@ async def add_message(
                 systems=systems,
                 subsystems=subsystems,
                 cscs=cscs,
-                jira_fields_id=row_jira_fields.id,
             )
             .returning(sa.literal_column("*"))
         )
@@ -162,6 +149,33 @@ async def add_message(
                 status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                 detail="Couldn't create message entry",
             )
+
+        # Add the jira fields
+        if any(
+            field is not None
+            for field in (
+                components,
+                primary_software_components,
+                primary_hardware_components,
+            )
+        ):
+            result_jira_fields = await connection.execute(
+                jira_fields_table.insert()
+                .values(
+                    components=components,
+                    primary_software_components=primary_software_components,
+                    primary_hardware_components=primary_hardware_components,
+                    message_id=row_message.id,
+                )
+                .returning(sa.literal_column("*"))
+            )
+            row_jira_fields = result_jira_fields.fetchone()
+
+            if row_jira_fields is None:
+                raise fastapi.HTTPException(
+                    status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+                    detail="Couldn't create jira_fields entry for message",
+                )
 
         # Find the message and join with jira_fields
         result_message_joined = await connection.execute(
