@@ -17,18 +17,23 @@ async def get_message(
 ) -> Message:
     """Get one message."""
     message_table = state.narrativelog_db.message_table
+    jira_fields_table = state.narrativelog_db.jira_fields_table
 
-    # Find the message
     async with state.narrativelog_db.engine.connect() as connection:
-        result = await connection.execute(
-            message_table.select().where(message_table.c.id == id)
+        # Find the message
+        result_message = await connection.execute(
+            message_table
+            # Join with jira_fields_table
+            .join(jira_fields_table, isouter=True)
+            .select()
+            .where(message_table.c.id == id)
         )
-        row = result.fetchone()
+        row = result_message.fetchone()
 
-    if row is None:
-        raise fastapi.HTTPException(
-            status_code=http.HTTPStatus.NOT_FOUND,
-            detail=f"No message found with id={id}",
-        )
+        if row is None:
+            raise fastapi.HTTPException(
+                status_code=http.HTTPStatus.NOT_FOUND,
+                detail=f"No message found with id={id}",
+            )
 
-    return Message.from_orm(row)
+        return Message.from_orm(row)

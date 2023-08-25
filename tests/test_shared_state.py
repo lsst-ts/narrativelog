@@ -4,7 +4,7 @@ import unittest
 import asyncpg.exceptions
 import testing.postgresql
 
-from narrativelog.create_message_table import SITE_ID_LEN
+from narrativelog.create_tables import SITE_ID_LEN
 from narrativelog.shared_state import (
     create_shared_state,
     delete_shared_state,

@@ -110,6 +110,53 @@ async def find_messages(
         "of which all must be absent. "
         "Repeat the parameter for each value.",
     ),
+    components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Component names or fragments of names. All messages "
+        "with a component that matches any of these are included. "
+        "Repeat the parameter for each value. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    exclude_components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Component names or fragments of names. All messages "
+        "with a component that matches any of these are excluded. "
+        "Repeat the parameter for each value. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    primary_software_components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Primary software components names or fragments of names. "
+        "All messages with a component that matches any of these are included. "
+        "Repeat the parameter for each value. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    exclude_primary_software_components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Primary software components names or fragments of names. "
+        "All messages with a component that matches any of these are excluded. "
+        "Repeat the parameter for each value. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    primary_hardware_components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Primary hardware components names or fragments of names. "
+        "All messages with a component that matches any of these are included. "
+        "Repeat the parameter for each value. "
+        "Each entry should be a valid component name entry on the OBS jira project.",
+    ),
+    exclude_primary_hardware_components: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Primary hardware components names or fragments of names. "
+        "All messages with a component that matches any of these are excluded. "
+        "Repeat the parameter for each value.",
+    ),
     urls: None
     | list[str] = fastapi.Query(
         default=None,
@@ -214,6 +261,7 @@ async def find_messages(
 ) -> list[Message]:
     """Find messages."""
     message_table = state.narrativelog_db.message_table
+    jira_fields_table = state.narrativelog_db.jira_fields_table
 
     # Names of selection arguments
     select_arg_names = (
@@ -229,6 +277,12 @@ async def find_messages(
         "exclude_subsystems",
         "cscs",
         "exclude_cscs",
+        "components",
+        "exclude_components",
+        "primary_software_components",
+        "exclude_primary_software_components",
+        "primary_hardware_components",
+        "exclude_primary_hardware_components",
         "tags",
         "exclude_tags",
         "urls",
@@ -324,6 +378,13 @@ async def find_messages(
                 column = message_table.columns[key]
                 conditions.append(column.op("&&")(value))
             elif key in {
+                "components",
+                "primary_software_components",
+                "primary_hardware_components",
+            }:
+                column = jira_fields_table.columns[key]
+                conditions.append(column.op("&&")(value))
+            elif key in {
                 "exclude_tags",
                 "exclude_systems",
                 "exclude_subsystems",
@@ -334,6 +395,14 @@ async def find_messages(
                 # by listing the parameter once per value.
                 column_name = key[8:]
                 column = message_table.columns[column_name]
+                conditions.append(sa.sql.not_(column.op("&&")(value)))
+            elif key in {
+                "exclude_components",
+                "exclude_primary_software_components",
+                "exclude_primary_hardware_components",
+            }:
+                column_name = key[8:]
+                column = jira_fields_table.columns[column_name]
                 conditions.append(sa.sql.not_(column.op("&&")(value)))
             elif key in {
                 "site_ids",
@@ -363,7 +432,10 @@ async def find_messages(
         else:
             full_conditions = sa.sql.and_(True)
         result = await connection.execute(
-            message_table.select()
+            message_table
+            # Join with jira_fields table
+            .join(jira_fields_table, isouter=True)
+            .select()
             .where(full_conditions)
             .order_by(*order_by_columns)
             .limit(limit)
@@ -371,4 +443,4 @@ async def find_messages(
         )
         rows = result.fetchall()
 
-    return [Message.from_orm(row) for row in rows]
+        return [Message.from_orm(row) for row in rows]

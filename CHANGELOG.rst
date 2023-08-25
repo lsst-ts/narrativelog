@@ -2,6 +2,13 @@
 Change Log
 ==========
 
+0.5.0
+-----
+
+* Add jira_fields table used to store specific jira metadata associated to messages: ``components``, ``primary_software_components`` and ``primary_hardware_components``.
+* Update pre-commit hooks.
+* Update some requirements versions to avoid conflicts.
+
 0.4.0
 -----
 

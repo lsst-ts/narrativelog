@@ -241,6 +241,9 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                 "tags",
                 "systems",
                 "subsystems",
+                "components",
+                "primary_software_components",
+                "primary_hardware_components",
                 "cscs",
                 "urls",
             ):

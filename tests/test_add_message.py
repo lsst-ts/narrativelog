@@ -6,12 +6,19 @@ import unittest
 import httpx
 
 from narrativelog.testutils import (
+    TEST_COMPONENTS,
+    TEST_CSCS,
+    TEST_PRIMARY_HARDWARE_COMPONENTS,
+    TEST_PRIMARY_SOFTWARE_COMPONENTS,
+    TEST_SUBSYSTEMS,
+    TEST_SYSTEMS,
     TEST_TAGS,
     TEST_URLS,
     MessageDictT,
     assert_good_response,
     cast_special,
     create_test_client,
+    random_strings,
 )
 
 
@@ -73,9 +80,16 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             add_args_full["time_lost"] = 1234  # seconds
             add_args_full["date_begin"] = "2020-01-04T16:41:24"
             add_args_full["date_end"] = "2020-01-04T17:11:12"
-            add_args_full["systems"] = ["a system", "another system"]
-            add_args_full["subsystems"] = ["a subsystem", "another subsystem"]
-            add_args_full["cscs"] = ["MTHexapod:1", "MTRotator"]
+            add_args_full["systems"] = random_strings(TEST_SYSTEMS)
+            add_args_full["subsystems"] = random_strings(TEST_SUBSYSTEMS)
+            add_args_full["cscs"] = random_strings(TEST_CSCS)
+            add_args_full["components"] = random_strings(TEST_COMPONENTS)
+            add_args_full["primary_software_components"] = random_strings(
+                TEST_PRIMARY_SOFTWARE_COMPONENTS
+            )
+            add_args_full["primary_hardware_components"] = random_strings(
+                TEST_PRIMARY_HARDWARE_COMPONENTS
+            )
             response = await client.post(
                 "/narrativelog/messages", json=add_args_full
             )

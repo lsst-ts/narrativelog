@@ -11,20 +11,24 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 
 class LogMessageDatabase:
-    """Connection to the narrative log database and message table.
+    """Connection to the narrative log database and tables creation.
 
-    Create the table if it does not exist.
+    Creates message and jira_fields table if they do not exist.
 
     Parameters
     ----------
-    message_table
+    message_table: sa.Table
         Message table.
-    url
+    jira_fields_table: sa.Table
+        Jira fields table.
+    url: str
         URL of narrative log database server in the form:
         postgresql://[user[:password]@][netloc][:port][/dbname]
     """
 
-    def __init__(self, message_table: sa.Table, url: str):
+    def __init__(
+        self, message_table: sa.Table, jira_fields_table: sa.Table, url: str
+    ):
         self._closed = False
         self.url = url
         self.logger = structlog.get_logger("LogMessageDatabase")
@@ -32,6 +36,7 @@ class LogMessageDatabase:
         sa_url = sa_url.set(drivername="postgresql+asyncpg")
         self.engine = create_async_engine(sa_url, future=True)
         self.message_table = message_table
+        self.jira_fields_table = jira_fields_table
         self.start_task = asyncio.create_task(self.start())
 
     async def start(self) -> None:

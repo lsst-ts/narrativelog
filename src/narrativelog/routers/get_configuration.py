@@ -13,6 +13,7 @@ class Config(pydantic.BaseModel):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 
 @router.get("/configuration", response_model=Config)

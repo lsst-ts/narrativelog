@@ -1,4 +1,8 @@
-__all__ = ["SITE_ID_LEN", "create_message_table"]
+__all__ = [
+    "SITE_ID_LEN",
+    "create_message_table",
+    "create_jira_fields_table",
+]
 
 import uuid
 
@@ -10,11 +14,22 @@ from sqlalchemy.dialects.postgresql import UUID
 SITE_ID_LEN = 16
 
 
-def create_message_table() -> sa.Table:
-    """Make a model of the narrativelog message table."""
+def create_message_table(metadata: sa.MetaData) -> sa.Table:
+    """Make a model of the narrativelog message table.
+
+    Parameters
+    ----------
+    metadata: sa.MetaData
+        SQLAlchemy metadata object.
+
+    Returns
+    -------
+    table: sa.Table
+        SQLAlchemy table object for message.
+    """
     table = sa.Table(
         "message",
-        sa.MetaData(),
+        metadata,
         # See https://stackoverflow.com/a/49398042 for UUID:
         sa.Column(
             "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -39,9 +54,9 @@ def create_message_table() -> sa.Table:
         sa.Column("date_invalidated", saty.DateTime(), nullable=True),
         sa.Column("parent_id", UUID(as_uuid=True), nullable=True),
         # Added 2022-07-19
-        sa.Column("systems", saty.ARRAY(sa.Text), nullable=False),
-        sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=False),
-        sa.Column("cscs", saty.ARRAY(sa.Text), nullable=False),
+        sa.Column("systems", saty.ARRAY(sa.Text), nullable=True),
+        sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=True),
+        sa.Column("cscs", saty.ARRAY(sa.Text), nullable=True),
         # Added 2022-07-37
         sa.Column("date_end", saty.DateTime(), nullable=True),
         # Constraints
@@ -57,5 +72,39 @@ def create_message_table() -> sa.Table:
         "date_added",
     ):
         sa.Index(f"idx_{name}", table.columns[name])
+
+    return table
+
+
+def create_jira_fields_table(metadata: sa.MetaData) -> sa.Table:
+    """Make a model of the narrativelog jira fields table.
+
+    Parameters
+    ----------
+    metadata: sa.MetaData
+        SQLAlchemy metadata object.
+
+    Returns
+    -------
+    table: sa.Table
+        SQLAlchemy table object for jira_fields.
+    """
+    table = sa.Table(
+        "jira_fields",
+        metadata,
+        sa.Column(
+            "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        ),
+        sa.Column("components", saty.ARRAY(sa.Text), nullable=True),
+        sa.Column(
+            "primary_software_components", saty.ARRAY(sa.Text), nullable=True
+        ),
+        sa.Column(
+            "primary_hardware_components", saty.ARRAY(sa.Text), nullable=True
+        ),
+        sa.Column("message_id", UUID(as_uuid=True), nullable=False),
+        # Constraints
+        sa.ForeignKeyConstraint(["message_id"], ["message.id"]),
+    )
 
     return table

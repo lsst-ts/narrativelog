@@ -26,7 +26,6 @@ SITE_ID_LEN = 16
 async def create_database() -> collections.abc.AsyncGenerator[
     AsyncEngine, None
 ]:
-
     """Create an empty database and set env vars to point to it.
 
     Returns
