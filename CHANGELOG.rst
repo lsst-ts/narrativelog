@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+0.5.1
+-----
+
+* Add missing migration to set 'systems', 'subsystems', and 'cscs' as nullable fields.
+
 0.5.0
 -----
 
