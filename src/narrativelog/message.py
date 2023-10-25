@@ -71,6 +71,13 @@ class Message(BaseModel):
         title="Zero or more primary hardware component names. "
         "Each entry should be a valid component name entry on the OBS jira project.",
     )
+    # Added 2023-10-24
+    category: None | str = Field(
+        title="Category of message.",
+    )
+    time_lost_type: None | str = Field(
+        title="Type of time lost.",
+    )
 
     class Config:
         orm_mode = True

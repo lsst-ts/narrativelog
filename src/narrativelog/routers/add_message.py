@@ -24,6 +24,16 @@ async def add_message(
     level: int = fastapi.Body(
         ..., description="Message level; a python logging level."
     ),
+    category: None
+    | str = fastapi.Body(
+        default=None,
+        description="Message category; a string.",
+    ),
+    time_lost_type: None
+    | str = fastapi.Body(
+        default=None,
+        description="Type of lost time.",
+    ),
     tags: list[str] = fastapi.Body(
         default=[],
         description="Tags describing the message. " + TAG_DESCRIPTION,
@@ -140,6 +150,8 @@ async def add_message(
                 systems=systems,
                 subsystems=subsystems,
                 cscs=cscs,
+                category=category,
+                time_lost_type=time_lost_type,
             )
             .returning(sa.literal_column("*"))
         )

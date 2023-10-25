@@ -90,6 +90,10 @@ class AddMessageTestCase(unittest.IsolatedAsyncioTestCase):
             add_args_full["primary_hardware_components"] = random_strings(
                 TEST_PRIMARY_HARDWARE_COMPONENTS
             )
+            add_args_full["category"] = "test"
+            add_args_full["time_lost_type"] = random.choice(
+                ["fault", "weather"]
+            )
             response = await client.post(
                 "/narrativelog/messages", json=add_args_full
             )

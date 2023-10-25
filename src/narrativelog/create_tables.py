@@ -13,6 +13,12 @@ from sqlalchemy.dialects.postgresql import UUID
 # Length of the site_id field.
 SITE_ID_LEN = 16
 
+# Length of the category field.
+CATEGORY_LEN = 50
+
+# Length of the time_lost_type field.
+TIME_LOST_TYPE_LEN = 50
+
 
 def create_message_table(metadata: sa.MetaData) -> sa.Table:
     """Make a model of the narrativelog message table.
@@ -59,6 +65,13 @@ def create_message_table(metadata: sa.MetaData) -> sa.Table:
         sa.Column("cscs", saty.ARRAY(sa.Text), nullable=True),
         # Added 2022-07-37
         sa.Column("date_end", saty.DateTime(), nullable=True),
+        # Added 2023-10-24
+        sa.Column("category", saty.String(length=CATEGORY_LEN), nullable=True),
+        sa.Column(
+            "time_lost_type",
+            saty.String(length=TIME_LOST_TYPE_LEN),
+            nullable=True,
+        ),
         # Constraints
         sa.ForeignKeyConstraint(["parent_id"], ["message.id"]),
     )
@@ -70,6 +83,8 @@ def create_message_table(metadata: sa.MetaData) -> sa.Table:
         "user_id",
         "is_valid",
         "date_added",
+        "category",
+        "time_lost_type",
     ):
         sa.Index(f"idx_{name}", table.columns[name])
 

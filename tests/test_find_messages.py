@@ -115,8 +115,6 @@ def assert_two_messages_ordered(
     for key in order_by:
         if key.startswith("-"):
             field = key[1:]
-            val1 = message1[field]
-            val2 = message2[field]
             desired_cmp_result = 1
         else:
             field = key
@@ -458,6 +456,8 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                     "level",
                     "user_id",
                     "user_agent",
+                    "category",
+                    "time_lost_type",
                 )
             )
             for field, prefix in itertools.product(fields, ("", "-")):
