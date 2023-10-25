@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+0.6.0
+-----
+
+* Add new parameters: ``category`` and ``time_lost_type``.
+
 0.5.1
 -----
 
