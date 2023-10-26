@@ -34,10 +34,9 @@ def assert_good_edit_response(
             (
                 "id",
                 "site_id",
-                "is_valid",
                 "parent_id",
-                "date_added",
                 "is_valid",
+                "date_added",
                 "date_invalidated",
             )
         ):
@@ -86,6 +85,8 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
                     "new primary_hardware_component 1",
                     "new primary_hardware_component 2",
                 ],
+                category="New category",
+                time_lost_type=random.choice(["fault", "weather"]),
             )
             # Repeatedly edit the old message. Each time
             # add a new version of the message with one field omitted,

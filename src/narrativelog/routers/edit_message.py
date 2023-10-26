@@ -24,6 +24,16 @@ async def edit_message(
         default=None,
         description="Message level; a python logging level.",
     ),
+    category: None
+    | str = fastapi.Body(
+        default=None,
+        description="Message category; a string.",
+    ),
+    time_lost_type: None
+    | str = fastapi.Body(
+        default=None,
+        description="Type of lost time.",
+    ),
     tags: None
     | list[str] = fastapi.Body(
         default=None,
@@ -133,6 +143,8 @@ async def edit_message(
         "components",
         "primary_software_components",
         "primary_hardware_components",
+        "category",
+        "time_lost_type",
         "urls",
         "time_lost",
         "date_begin",

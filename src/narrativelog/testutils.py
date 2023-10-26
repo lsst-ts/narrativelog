@@ -31,7 +31,11 @@ from sqlalchemy import MetaData, literal_column
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from . import main, shared_state
-from .create_tables import create_jira_fields_table, create_message_table
+from .create_tables import (
+    CATEGORY_LEN,
+    create_jira_fields_table,
+    create_message_table,
+)
 from .message import JIRA_FIELDS, MESSAGE_FIELDS
 
 # Range of dates for random messages.
@@ -392,6 +396,9 @@ def random_message() -> MessageDictT:
         primary_hardware_components=random_strings(
             TEST_PRIMARY_HARDWARE_COMPONENTS
         ),
+        # Added 2023-10-24
+        category=random_str(nchar=CATEGORY_LEN),
+        time_lost_type=random.choice(["fault", "weather"]),
     )
 
     # Check that we have set all fields (not necessarily in order).

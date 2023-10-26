@@ -57,6 +57,34 @@ async def find_messages(
         description="User agents (which app created the message). "
         "Repeat the parameter for each value.",
     ),
+    categories: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Categories, or fragments of categories, "
+        "of which at least one must be present. "
+        "Repeat the parameter for each value.",
+    ),
+    exclude_categories: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Categories, or fragments of categories, "
+        "of which all must be absent. "
+        "Repeat the parameter for each value.",
+    ),
+    time_lost_types: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Time lost types, or fragments of time lost types, "
+        "of which at least one must be present. "
+        "Repeat the parameter for each value.",
+    ),
+    exclude_time_lost_types: None
+    | list[str] = fastapi.Query(
+        default=None,
+        description="Time lost types, or fragments of time lost types, "
+        "of which all must be absent. "
+        "Repeat the parameter for each value.",
+    ),
     tags: None
     | list[str] = fastapi.Query(
         default=None,
