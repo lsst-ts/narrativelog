@@ -98,6 +98,12 @@ async def edit_message(
         description="Approximate initial TAI date at which this message is relevant "
         "(if different than the time at which the message was specified)",
     ),
+    date_end: None
+    | datetime.datetime = fastapi.Body(
+        default=None,
+        description="Approximate final TAI date at which this message is relevant "
+        "(if different than the time at which the message was specified)",
+    ),
     site_id: None | str = fastapi.Body(default=None, description="Site ID"),
     user_id: None | str = fastapi.Body(default=None, description="User ID"),
     user_agent: None
@@ -148,6 +154,7 @@ async def edit_message(
         "urls",
         "time_lost",
         "date_begin",
+        "date_end",
         "site_id",
         "user_id",
         "user_agent",
