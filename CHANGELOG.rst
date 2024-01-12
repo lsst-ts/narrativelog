@@ -2,6 +2,11 @@
 Change Log
 ==========
 
+0.6.1
+-----
+
+* Add missing ``date_end`` param to ``edit_message`` route.
+
 0.6.0
 -----
 
