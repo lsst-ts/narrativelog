@@ -87,6 +87,8 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
                 ],
                 category="New category",
                 time_lost_type=random.choice(["fault", "weather"]),
+                date_begin="2024-01-01T00:00:00",
+                date_end="2024-01-01T00:00:00",
             )
             # Repeatedly edit the old message. Each time
             # add a new version of the message with one field omitted,
