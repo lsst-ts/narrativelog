@@ -3,6 +3,7 @@ __all__ = ["find_messages"]
 import datetime
 import enum
 import http
+import json
 
 import fastapi
 import sqlalchemy as sa
@@ -101,42 +102,54 @@ async def find_messages(
         default=None,
         description="System names or fragments of names. All messages "
         "with a system that matches any of these are included. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_systems: None
     | list[str] = fastapi.Query(
         default=None,
         description="System names or fragments of names. All messages "
         "with a system that matches any of these are excluded. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     subsystems: None
     | list[str] = fastapi.Query(
         default=None,
         description="Subsystem names or fragments of names. All messages "
         "with a subsystem that matches any of these are included. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_subsystems: None
     | list[str] = fastapi.Query(
         default=None,
         description="Subsystem names or fragments of names. All messages "
         "with a subsystem that matches any of these are excluded. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     cscs: None
     | list[str] = fastapi.Query(
         default=None,
         description="CSC names or fragments of CSC names, "
         "of which at least one must be present. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_cscs: None
     | list[str] = fastapi.Query(
         default=None,
         description="CSC names or fragments of CSC names, "
         "of which all must be absent. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     components: None
     | list[str] = fastapi.Query(
@@ -144,7 +157,9 @@ async def find_messages(
         description="Component names or fragments of names. All messages "
         "with a component that matches any of these are included. "
         "Repeat the parameter for each value. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_components: None
     | list[str] = fastapi.Query(
@@ -152,7 +167,9 @@ async def find_messages(
         description="Component names or fragments of names. All messages "
         "with a component that matches any of these are excluded. "
         "Repeat the parameter for each value. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     primary_software_components: None
     | list[str] = fastapi.Query(
@@ -160,7 +177,9 @@ async def find_messages(
         description="Primary software components names or fragments of names. "
         "All messages with a component that matches any of these are included. "
         "Repeat the parameter for each value. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_primary_software_components: None
     | list[str] = fastapi.Query(
@@ -168,7 +187,9 @@ async def find_messages(
         description="Primary software components names or fragments of names. "
         "All messages with a component that matches any of these are excluded. "
         "Repeat the parameter for each value. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     primary_hardware_components: None
     | list[str] = fastapi.Query(
@@ -176,14 +197,73 @@ async def find_messages(
         description="Primary hardware components names or fragments of names. "
         "All messages with a component that matches any of these are included. "
         "Repeat the parameter for each value. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
     ),
     exclude_primary_hardware_components: None
     | list[str] = fastapi.Query(
         default=None,
         description="Primary hardware components names or fragments of names. "
         "All messages with a component that matches any of these are excluded. "
-        "Repeat the parameter for each value.",
+        "Repeat the parameter for each value. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_path' instead.",
+    ),
+    components_path: None
+    | str = fastapi.Query(
+        default=None,
+        description="Components structure in JSON format to include. "
+        'All messages with a "components_json" field that '
+        "matches at least a key with any of the values specified within "
+        'the "components_path" are included. The JSON object represents the current '
+        "hierarchy of systems, subsystems and components on the OBS Jira project: "
+        '`{"systems": ["system1", ..., "systemN"], '
+        '"subsystems": ["subsystem1", ..., "subsystemN"], '
+        '"components": ["component1", ..., "componentN"]}`. '
+        'E.g. Setting "components_path" to `{"systems": ["AuxTel", "Simonyi"], '
+        '"subsystems": ["Mount", "TMA"], '
+        '"components": ["ATMCS CSC"]}` will match '
+        'all messages that have "AuxTel" OR '
+        '"Simonyi" values under the "systems" key '
+        'OR have "Mount" OR "TMA" values under the "subsystems" key '
+        'OR have "ATMCS CSC" value under the "components" key. '
+        'Note that setting "components_path" to `{"subsystems": '
+        '["Mount", "TMA"]}` is the same as setting it to '
+        '`{"subsystems": ["TMA", "Mount"]}` so will end up '
+        'in the same result. Also setting it to `{"subsystems": []}` will '
+        'include all messages that have at least the "subsystems" key defined. '
+        "Any key with a value that is not a list will be ignored. "
+        'Furthermore setting "components_path" to `{}` will have no effect and '
+        "an invalid JSON will raise a 400 error.",
+    ),
+    exclude_components_path: None
+    | str = fastapi.Query(
+        default=None,
+        description="Components structure in JSON format to exclude. "
+        'All messages with a "components_json" field that '
+        "matches at least a key with any of the values specified within "
+        'the "exclude_components_path" are excluded. The JSON object '
+        "represents the current hierarchy of systems, subsystems "
+        "and components on the OBS Jira project: "
+        '`{"systems": ["system1", ..., "systemN"], '
+        '"subsystems": ["subsystem1", ..., "subsystemN"], '
+        '"components": ["component1", ..., "componentN"]}`. '
+        'E.g. Setting "exclude_components_path" to `{"systems": ["AuxTel", '
+        '"Simonyi"], "subsystems": ["Mount", "TMA"], '
+        '"components": ["ATMCS CSC"]}` will match '
+        'all messages that have "AuxTel" OR '
+        '"Simonyi" values under the "systems" key '
+        'OR have "Mount" OR "TMA" values under the "subsystems" key '
+        'OR have "ATMCS CSC" value under the "components" key. '
+        'Note that setting "exclude_components_path" to `{"subsystems": '
+        '["Mount", "TMA"]}` is the same as setting it to '
+        '`{"subsystems": ["TMA", "Mount"]}` so will end up '
+        'in the same result. Also setting it to `{"subsystems": []}` will '
+        'include all messages that have at least the "subsystems" key defined. '
+        "Any key with a value that is not a list will be ignored. "
+        'Furthermore setting "exclude_components_path" to `{}` will have no effect '
+        "and an invalid JSON will raise a 400 error.",
     ),
     urls: None
     | list[str] = fastapi.Query(
@@ -299,18 +379,44 @@ async def find_messages(
         "max_level",
         "user_ids",
         "user_agents",
+        # 'systems' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "systems",
+        # 'exclude_systems' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "exclude_systems",
+        # 'subsystems' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "subsystems",
+        # 'exclude_subsystems' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "exclude_subsystems",
+        # 'cscs' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "cscs",
+        # 'exclude_cscs' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "exclude_cscs",
+        # 'components' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "components",
+        # 'exclude_components' field is deprecated and will be removed in v1.0.0.
+        #  Please use 'components_path' instead
         "exclude_components",
+        # 'primary_software_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_path' instead
         "primary_software_components",
+        # 'exclude_primary_software_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_path' instead
         "exclude_primary_software_components",
+        # 'primary_hardware_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_path' instead
         "primary_hardware_components",
+        # 'exclude_primary_hardware_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_path' instead
         "exclude_primary_hardware_components",
+        "components_path",
+        "exclude_components_path",
         "tags",
         "exclude_tags",
         "urls",
@@ -386,8 +492,14 @@ async def find_messages(
                     conditions.append(column == None)  # noqa
             elif key in {
                 "tags",
+                # 'systems' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_path' instead
                 "systems",
+                # 'subsystems' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_path' instead
                 "subsystems",
+                # 'cscs' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_path' instead
                 "cscs",
                 "urls",
             }:
@@ -406,16 +518,28 @@ async def find_messages(
                 column = message_table.columns[key]
                 conditions.append(column.op("&&")(value))
             elif key in {
+                # 'components' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_path' instead
                 "components",
+                # 'primary_software_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "primary_software_components",
+                # 'primary_hardware_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "primary_hardware_components",
             }:
                 column = jira_fields_table.columns[key]
                 conditions.append(column.op("&&")(value))
             elif key in {
                 "exclude_tags",
+                # 'exclude_systems' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_systems",
+                # 'exclude_subsystems' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_subsystems",
+                # 'exclude_cscs' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_cscs",
             }:
                 # Value is a list; field name is the end of the key.
@@ -425,13 +549,59 @@ async def find_messages(
                 column = message_table.columns[column_name]
                 conditions.append(sa.sql.not_(column.op("&&")(value)))
             elif key in {
+                # 'exclude_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_components",
+                # 'exclude_primary_software_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_primary_software_components",
+                # 'exclude_primary_hardware_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_path' instead
                 "exclude_primary_hardware_components",
             }:
                 column_name = key[8:]
                 column = jira_fields_table.columns[column_name]
                 conditions.append(sa.sql.not_(column.op("&&")(value)))
+            elif key in {"components_path"}:
+                try:
+                    parsed_value = json.loads(value)
+                except json.JSONDecodeError as error:
+                    raise fastapi.HTTPException(
+                        status_code=http.HTTPStatus.BAD_REQUEST,
+                        detail=f"Invalid JSON in {key}: {error}",
+                    )
+                column_name = "components_json"
+                column = jira_fields_table.columns[column_name]
+                individual_conditions = []
+                for key in parsed_value:
+                    value = parsed_value[key]
+                    if not value or not isinstance(value, list):
+                        continue
+                    for element in value:
+                        path = {key: [element]}
+                        individual_conditions.append(column.contains(path))
+                conditions.append(sa.sql.or_(*individual_conditions))
+            elif key in {"exclude_components_path"}:
+                try:
+                    parsed_value = json.loads(value)
+                except json.JSONDecodeError as error:
+                    raise fastapi.HTTPException(
+                        status_code=http.HTTPStatus.BAD_REQUEST,
+                        detail=f"Invalid JSON in {key}: {error}",
+                    )
+                column_name = "components_json"
+                column = jira_fields_table.columns[column_name]
+                individual_conditions = []
+                for key in parsed_value:
+                    value = parsed_value[key]
+                    if not value or not isinstance(value, list):
+                        continue
+                    for element in value:
+                        path = {key: [element]}
+                        individual_conditions.append(column.contains(path))
+                conditions.append(
+                    sa.sql.not_(sa.sql.or_(*individual_conditions))
+                )
             elif key in {
                 "site_ids",
                 "instruments",

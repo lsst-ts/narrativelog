@@ -41,37 +41,62 @@ async def add_message(
     systems: None
     | list[str] = fastapi.Body(
         default=None,
-        description="Zero or more systems to which the message applies.",
+        description="Zero or more systems to which the message applies. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
     ),
     subsystems: None
     | list[str] = fastapi.Body(
         default=None,
-        description="Zero or more subsystems to which the message applies",
+        description="Zero or more subsystems to which the message applies. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
     ),
     cscs: None
     | list[str] = fastapi.Body(
         default=None,
         description="Zero or more CSCs to which the message applies. "
         "Each entry should be in the form 'name' or 'name:index', "
-        "where 'name' is the SAL component name and 'index' is the SAL index.",
+        "where 'name' is the SAL component name and 'index' is the SAL index. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
     ),
     components: None
     | list[str] = fastapi.Body(
         default=None,
         description="Zero or more components to which the message applies. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
     ),
     primary_software_components: None
     | list[str] = fastapi.Body(
         default=None,
         description="Primary software components to which the message applies. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
     ),
     primary_hardware_components: None
     | list[str] = fastapi.Body(
         default=None,
         description="Primary hardware components to which the message applies. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "**This field is deprecated and will be removed in v1.0.0**. "
+        "Please use 'components_json' instead.",
+    ),
+    components_json: None
+    | dict = fastapi.Body(
+        default=None,
+        description="JSON representation of systems, subsystems and components "
+        "on the OBS jira project. An example of a valid payload is: "
+        '`{"systems": ["Simonyi", "AuxTel"], '
+        '{"subsystems": ["TMA", "Mount"], '
+        '{"components": ["MTMount CSC"]}`. '
+        "For a full list of valid systems, subsystems and components "
+        "please refer to: [Systems, Sub-Systems and Components Proposal "
+        "for the OBS Jira project](https://rubinobs.atlassian.net/wiki/spaces/LSSTCOM/"
+        "pages/53741849/Systems+Sub-Systems+and+Components+Proposal+for+JIRA)",
     ),
     urls: list[str] = fastapi.Body(
         default=[],
@@ -147,8 +172,14 @@ async def add_message(
                 user_agent=user_agent,
                 is_human=is_human,
                 date_added=curr_tai.tai.datetime,
+                # 'systems' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_json' instead
                 systems=systems,
+                # 'subsystems' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_json' instead
                 subsystems=subsystems,
+                # 'cscs' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_json' instead
                 cscs=cscs,
                 category=category,
                 time_lost_type=time_lost_type,
@@ -166,17 +197,33 @@ async def add_message(
         if any(
             field is not None
             for field in (
+                # 'components' field is deprecated and will be removed in v1.0.0.
+                #  Please use 'components_json' instead
                 components,
+                # 'primary_software_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_json' instead
                 primary_software_components,
+                # 'primary_hardware_components' field is deprecated
+                #  and will be removed in v1.0.0. Please use 'components_json' instead
                 primary_hardware_components,
+                components_json,
             )
         ):
             result_jira_fields = await connection.execute(
                 jira_fields_table.insert()
                 .values(
+                    # 'components' field is deprecated and will be removed in v1.0.0.
+                    #  Please use 'components_json' instead
                     components=components,
+                    # 'primary_software_components' field is deprecated
+                    #  and will be removed in v1.0.0.
+                    #  Please use 'components_json' instead
                     primary_software_components=primary_software_components,
+                    # 'primary_hardware_components' field is deprecated
+                    #  and will be removed in v1.0.0.
+                    #  Please use 'components_json' instead
                     primary_hardware_components=primary_hardware_components,
+                    components_json=components_json,
                     message_id=row_message.id,
                 )
                 .returning(sa.literal_column("*"))

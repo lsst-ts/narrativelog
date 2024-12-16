@@ -46,13 +46,21 @@ class Message(BaseModel):
     )
     # Added 2022-07-19
     systems: None | list[str] = Field(
-        title="Zero or more system names.",
+        title="Zero or more system names. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
     )
-    subsystems: None | list[str] = Field(title="Zero or more subsystem names.")
+    subsystems: None | list[str] = Field(
+        title="Zero or more subsystem names. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
+    )
     cscs: None | list[str] = Field(
         title="Zero or more CSCs names. "
         "Each entry should be in the form 'name' or 'name:index', "
-        "where 'name' is the SAL component name and 'index' is the SAL index."
+        "where 'name' is the SAL component name and 'index' is the SAL index. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
     )
     # Added 2022-07-27
     date_end: None | datetime.datetime = Field(
@@ -61,15 +69,21 @@ class Message(BaseModel):
     # Added 2023-08-10
     components: None | list[str] = Field(
         title="Zero or more component names. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
     )
     primary_software_components: None | list[str] = Field(
         title="Zero or more primary software component names. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
     )
     primary_hardware_components: None | list[str] = Field(
         title="Zero or more primary hardware component names. "
-        "Each entry should be a valid component name entry on the OBS jira project.",
+        "Each entry should be a valid component name entry on the OBS jira project. "
+        "This field is deprecated and will be removed in v1.0.0. "
+        "Please use 'components_json' instead.",
     )
     # Added 2023-10-24
     category: None | str = Field(
@@ -78,6 +92,18 @@ class Message(BaseModel):
     time_lost_type: None | str = Field(
         title="Type of time lost.",
     )
+    # Added 2024-12-16
+    components_json: None | dict = Field(
+        default_factory=dict,
+        title="JSON representation of systems, subsystems and components "
+        "on the OBS jira project. An example of a valid payload is: "
+        '`{"systems": ["Simonyi", "AuxTel"], '
+        '{"subsystems": ["TMA", "Mount"], '
+        '{"components": ["MTMount CSC"]}`. '
+        "For a full list of valid systems, subsystems and components "
+        "please refer to: https://rubinobs.atlassian.net/wiki/spaces/LSSTCOM"
+        "/pages/53741849/Systems+Sub-Systems+and+Components+Proposal+for+JIRA",
+    )
 
     class Config:
         orm_mode = True
@@ -85,9 +111,16 @@ class Message(BaseModel):
 
 
 JIRA_FIELDS = (
+    # 'components' field is deprecated and will be removed in v1.0.0.
+    # Please use 'components_json' instead
     "components",
+    # 'primary_software_components' field is deprecated
+    #  and will be removed in v1.0.0. Please use 'components_json' instead
     "primary_software_components",
+    # 'primary_hardware_components' field is deprecated
+    #  and will be removed in v1.0.0. Please use 'components_json' instead
     "primary_hardware_components",
+    "components_json",
 )
 MESSAGE_FIELDS = tuple(
     set(Message.schema()["properties"].keys()) - set(JIRA_FIELDS)
