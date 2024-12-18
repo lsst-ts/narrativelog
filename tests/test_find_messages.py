@@ -1,6 +1,7 @@
 import collections.abc
 import http
 import itertools
+import json
 import random
 import typing
 import unittest
@@ -340,6 +341,50 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                     return value in message[field]
 
                 find_args_predicates.append(({field: value}, test_contains))
+
+            # "Contains" arguments for JSON fields: these specify a
+            # JSON path to match.
+            for field in ("components_json",):
+                # Scramble the messages and use the first
+                # message with at least a key with two values
+                messages_to_search = random.sample(messages, len(messages))
+                for message in messages_to_search:
+                    components_json = message[field]
+                    for key in components_json:
+                        if len(components_json[key]) >= 2:
+                            first_two_values = components_json[key][0:2]
+                            values = [(key, val) for val in first_two_values]
+                            path = json.dumps({key: first_two_values})
+                            break
+
+                @doc_str(f"{path!r} in message[{field!r}]")
+                def test_contains_path(
+                    message: MessageDictT,
+                    field: str = field,
+                    values: list[tuple[str, str]] = values,
+                ) -> bool:
+                    matches = [
+                        val in message[field][key] for key, val in values
+                    ]
+                    return any(matches)
+
+                def test_contains_exclude_path(
+                    message: MessageDictT,
+                    field: str = field,
+                    values: list[tuple[str, str]] = values,
+                ) -> bool:
+                    matches = [
+                        val in message[field][key] for key, val in values
+                    ]
+                    return not any(matches)
+
+                find_args_predicates += [
+                    ({"components_path": path}, test_contains_path),
+                    (
+                        {"exclude_components_path": path},
+                        test_contains_exclude_path,
+                    ),
+                ]
 
             # has_<field> arguments (for fields that may be null).
             for field in (
