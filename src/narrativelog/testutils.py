@@ -366,6 +366,12 @@ def random_message() -> MessageDictT:
     elif random_value > 0.25:
         date_begin = random_date()
 
+    test_components_json = {
+        "systems": random_strings(TEST_SYSTEMS),
+        "subsystems": random_strings(TEST_SUBSYSTEMS),
+        "components": random_strings(TEST_COMPONENTS),
+    }
+
     message = dict(
         id=None,
         site_id=TEST_SITE_ID,
@@ -396,6 +402,8 @@ def random_message() -> MessageDictT:
         primary_hardware_components=random_strings(
             TEST_PRIMARY_HARDWARE_COMPONENTS
         ),
+        # Added 2024-12-16
+        components_json=test_components_json,
         # Added 2023-10-24
         category=random_str(nchar=CATEGORY_LEN),
         time_lost_type=random.choice(["fault", "weather"]),
@@ -502,11 +510,14 @@ async def create_test_database(
             pruned_message = message.copy()
             del pruned_message["is_valid"]
             # Do not insert "components",
-            # "primary_software_components", or "primary_hardware_components"
+            # "primary_software_components",
+            # "primary_hardware_components",
+            # or "components_json"
             # because they are in a separate table.
             del pruned_message["components"]
             del pruned_message["primary_software_components"]
             del pruned_message["primary_hardware_components"]
+            del pruned_message["components_json"]
 
             # Insert the message
             result_message = await connection.execute(
@@ -529,6 +540,7 @@ async def create_test_database(
                     primary_hardware_components=message[
                         "primary_hardware_components"
                     ],
+                    components_json=message["components_json"],
                     message_id=data_message.id,
                 )
                 .returning(literal_column("*"))
