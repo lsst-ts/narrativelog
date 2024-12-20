@@ -267,7 +267,15 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
                 )
 
             # exclude_key for collection arguments for arrays
-            for field in ("tags",):
+            for field in (
+                "tags",
+                "systems",
+                "subsystems",
+                "cscs",
+                "components",
+                "primary_software_components",
+                "primary_hardware_components",
+            ):
                 # Scramble the messages and use two field list values
                 # from the first message with at least two values
                 messages_to_search = random.sample(messages, len(messages))
@@ -451,7 +459,6 @@ class FindMessagesTestCase(unittest.IsolatedAsyncioTestCase):
             fields = list(MESSAGE_FIELDS)
             str_fields = set(
                 (
-                    "instrument",
                     "message_text",
                     "level",
                     "user_id",
