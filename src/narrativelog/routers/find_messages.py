@@ -10,6 +10,7 @@ import sqlalchemy as sa
 
 from ..message import MESSAGE_ORDER_BY_VALUES, Message
 from ..shared_state import SharedState, get_shared_state
+from ..utils import JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK
 from .normalize_tags import TAG_DESCRIPTION, normalize_tags
 
 router = fastapi.APIRouter()
@@ -211,59 +212,157 @@ async def find_messages(
         "Please use 'components_path' instead.",
     ),
     components_path: None
-    | str = fastapi.Query(
+    | list[str] = fastapi.Query(
         default=None,
-        description="Components structure in JSON format to include. "
-        'All messages with a "components_json" field that '
-        "matches at least a key with any of the values specified within "
-        'the "components_path" are included. The JSON object represents the current '
-        "hierarchy of systems, subsystems and components on the OBS Jira project: "
-        '`{"systems": ["system1", ..., "systemN"], '
-        '"subsystems": ["subsystem1", ..., "subsystemN"], '
-        '"components": ["component1", ..., "componentN"]}`. '
-        'E.g. Setting "components_path" to `{"systems": ["AuxTel", "Simonyi"], '
-        '"subsystems": ["Mount", "TMA"], '
-        '"components": ["ATMCS CSC"]}` will match '
-        'all messages that have "AuxTel" OR '
-        '"Simonyi" values under the "systems" key '
-        'OR have "Mount" OR "TMA" values under the "subsystems" key '
-        'OR have "ATMCS CSC" value under the "components" key. '
-        'Note that setting "components_path" to `{"subsystems": '
-        '["Mount", "TMA"]}` is the same as setting it to '
-        '`{"subsystems": ["TMA", "Mount"]}` so will end up '
-        'in the same result. Also setting it to `{"subsystems": []}` will '
-        'include all messages that have at least the "subsystems" key defined. '
-        "Any key with a value that is not a list will be ignored. "
-        'Furthermore setting "components_path" to `{}` will have no effect and '
-        "an invalid JSON will raise a 400 error.",
+        description="""
+List of strings with components structure in JSON format to include.
+ Matches all messages with at least a JSON path included in the "components_path" list.
+ Each element in the list is a JSON string as the object that represents the current
+ hierarchy of systems, subsystems and components on the OBS Jira project:
+ `System -> Subsystem -> Component`
+ (check """
+        f"""{JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK}"""
+        """ for valid hierarchies).
+ E.g. Setting a "components_path" string (you can add multiple) to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome",
+                "children": [
+                    {
+                        "name": "AT Azimuth Drives"
+                    }
+                ]
+            }
+        ]
+    }
+
+will match all messages that have "AuxTel" as system AND
+ "Dome" as subsystem of "AuxTel" AND
+ "AT Azimuth Drives" as component of "Dome".
+ Note that setting "components_path" to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome"
+            },
+            {
+                "name": "Mount"
+            }
+        ]
+    }
+
+Is the same as setting it to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Mount"
+            },
+            {
+                "name": "Dome"
+            }
+        ]
+    }
+
+In other words, the order of the children is not important.
+ Also setting a `children` key as `[]` is the same as not defining it
+ (will be ignored). Furthermore setting a "components_path" string
+ to `{}` will have no effect and any invalid JSON will raise a 400 error.
+ Take in mind that values are case senstive.
+
+All defined JSON strings will be joined with an OR operator.
+ E.g. setting two "components_path" as
+
+    { "name": "AuxTel" }
+
+and
+
+    { "name": "Simonyi" }
+
+Will match all messages that have "AuxTel" OR "Simonyi" as system.""",
     ),
     exclude_components_path: None
-    | str = fastapi.Query(
+    | list[str] = fastapi.Query(
         default=None,
-        description="Components structure in JSON format to exclude. "
-        'All messages with a "components_json" field that '
-        "matches at least a key with any of the values specified within "
-        'the "exclude_components_path" are excluded. The JSON object '
-        "represents the current hierarchy of systems, subsystems "
-        "and components on the OBS Jira project: "
-        '`{"systems": ["system1", ..., "systemN"], '
-        '"subsystems": ["subsystem1", ..., "subsystemN"], '
-        '"components": ["component1", ..., "componentN"]}`. '
-        'E.g. Setting "exclude_components_path" to `{"systems": ["AuxTel", '
-        '"Simonyi"], "subsystems": ["Mount", "TMA"], '
-        '"components": ["ATMCS CSC"]}` will match '
-        'all messages that have "AuxTel" OR '
-        '"Simonyi" values under the "systems" key '
-        'OR have "Mount" OR "TMA" values under the "subsystems" key '
-        'OR have "ATMCS CSC" value under the "components" key. '
-        'Note that setting "exclude_components_path" to `{"subsystems": '
-        '["Mount", "TMA"]}` is the same as setting it to '
-        '`{"subsystems": ["TMA", "Mount"]}` so will end up '
-        'in the same result. Also setting it to `{"subsystems": []}` will '
-        'include all messages that have at least the "subsystems" key defined. '
-        "Any key with a value that is not a list will be ignored. "
-        'Furthermore setting "exclude_components_path" to `{}` will have no effect '
-        "and an invalid JSON will raise a 400 error.",
+        description="""
+List of strings with components structure in JSON format to exclude.
+ Exclude all messages with at least a JSON path
+ included in the "exclude_components_path" list.
+ Each element in the list is a JSON string as the object that represents the current
+ hierarchy of systems, subsystems and components on the OBS Jira project:
+ `System -> Subsystem -> Component`
+ (check """
+        f"""{JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK}"""
+        """ for valid hierarchies).
+ E.g. Setting a "exclude_components_path" string (you can add multiple) to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome",
+                "children": [
+                    {
+                        "name": "AT Azimuth Drives"
+                    }
+                ]
+            }
+        ]
+    }
+
+will exclude all messages that have "AuxTel" as system AND
+ "Dome" as subsystem of "AuxTel" AND
+ "AT Azimuth Drives" as component of "Dome".
+ Note that setting "exclude_components_path" to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome"
+            },
+            {
+                "name": "Mount"
+            }
+        ]
+    }
+
+Is the same as setting it to
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Mount"
+            },
+            {
+                "name": "Dome"
+            }
+        ]
+    }
+
+In other words, the order of the children is not important.
+ Also setting a `children` key as `[]` is the same as not defining it
+ (will be ignored). Furthermore setting a "exclude_components_path" string
+ to `{}` will have no effect and any invalid JSON will raise a 400 error.
+ Take in mind that values are case senstive.
+
+All defined JSON strings will be joined with an OR operator.
+ E.g. setting two "exclude_components_path" as
+
+    { "name": "AuxTel" }
+
+and
+
+    { "name": "Simonyi" }
+
+Will exclude all messages that have "AuxTel" OR "Simonyi" as system.""",
     ),
     urls: None
     | list[str] = fastapi.Query(
@@ -563,42 +662,32 @@ async def find_messages(
                 column = jira_fields_table.columns[column_name]
                 conditions.append(sa.sql.not_(column.op("&&")(value)))
             elif key in {"components_path"}:
-                try:
-                    parsed_value = json.loads(value)
-                except json.JSONDecodeError as error:
-                    raise fastapi.HTTPException(
-                        status_code=http.HTTPStatus.BAD_REQUEST,
-                        detail=f"Invalid JSON in {key}: {error}",
-                    )
                 column_name = "components_json"
                 column = jira_fields_table.columns[column_name]
                 individual_conditions = []
-                for key in parsed_value:
-                    value = parsed_value[key]
-                    if not value or not isinstance(value, list):
-                        continue
-                    for element in value:
-                        path = {key: [element]}
-                        individual_conditions.append(column.contains(path))
+                for path in value:
+                    try:
+                        parsed_value = json.loads(path)
+                    except json.JSONDecodeError as error:
+                        raise fastapi.HTTPException(
+                            status_code=http.HTTPStatus.BAD_REQUEST,
+                            detail=f"Invalid JSON in {key}: {error}",
+                        )
+                    individual_conditions.append(column.contains(parsed_value))
                 conditions.append(sa.sql.or_(*individual_conditions))
             elif key in {"exclude_components_path"}:
-                try:
-                    parsed_value = json.loads(value)
-                except json.JSONDecodeError as error:
-                    raise fastapi.HTTPException(
-                        status_code=http.HTTPStatus.BAD_REQUEST,
-                        detail=f"Invalid JSON in {key}: {error}",
-                    )
                 column_name = "components_json"
                 column = jira_fields_table.columns[column_name]
                 individual_conditions = []
-                for key in parsed_value:
-                    value = parsed_value[key]
-                    if not value or not isinstance(value, list):
-                        continue
-                    for element in value:
-                        path = {key: [element]}
-                        individual_conditions.append(column.contains(path))
+                for path in value:
+                    try:
+                        parsed_value = json.loads(path)
+                    except json.JSONDecodeError as error:
+                        raise fastapi.HTTPException(
+                            status_code=http.HTTPStatus.BAD_REQUEST,
+                            detail=f"Invalid JSON in {key}: {error}",
+                        )
+                    individual_conditions.append(column.contains(parsed_value))
                 conditions.append(
                     sa.sql.not_(sa.sql.or_(*individual_conditions))
                 )

@@ -9,6 +9,7 @@ import sqlalchemy as sa
 
 from ..message import Message
 from ..shared_state import SharedState, get_shared_state
+from ..utils import JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK
 from .normalize_tags import TAG_DESCRIPTION, normalize_tags
 
 router = fastapi.APIRouter()
@@ -88,15 +89,26 @@ async def add_message(
     components_json: None
     | dict = fastapi.Body(
         default=None,
-        description="JSON representation of systems, subsystems and components "
-        "on the OBS jira project. An example of a valid payload is: "
-        '`{"systems": ["Simonyi", "AuxTel"], '
-        '{"subsystems": ["TMA", "Mount"], '
-        '{"components": ["MTMount CSC"]}`. '
-        "For a full list of valid systems, subsystems and components "
-        "please refer to: [Systems, Sub-Systems and Components Proposal "
-        "for the OBS Jira project](https://rubinobs.atlassian.net/wiki/spaces/LSSTCOM/"
-        "pages/53741849/Systems+Sub-Systems+and+Components+Proposal+for+JIRA)",
+        description="""
+JSON representation of systems, subsystems and components hierarchy
+ on the OBS jira project. An example of a valid payload is:
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome",
+                "children": [
+                    {
+                        "name": "AT Azimuth Drives"
+                    }
+                ]
+            }
+        ]
+    }
+
+For a full list of valid systems, subsystems and components please refer to: """
+        f"""{JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK}.""",
     ),
     urls: list[str] = fastapi.Body(
         default=[],

@@ -5,6 +5,8 @@ import uuid
 
 from pydantic import BaseModel, Field
 
+from .utils import JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK
+
 
 class Message(BaseModel):
     id: uuid.UUID = Field(title="Message ID: a UUID that is the primary key.")
@@ -95,14 +97,26 @@ class Message(BaseModel):
     # Added 2024-12-16
     components_json: None | dict = Field(
         default_factory=dict,
-        title="JSON representation of systems, subsystems and components "
-        "on the OBS jira project. An example of a valid payload is: "
-        '`{"systems": ["Simonyi", "AuxTel"], '
-        '{"subsystems": ["TMA", "Mount"], '
-        '{"components": ["MTMount CSC"]}`. '
-        "For a full list of valid systems, subsystems and components "
-        "please refer to: https://rubinobs.atlassian.net/wiki/spaces/LSSTCOM"
-        "/pages/53741849/Systems+Sub-Systems+and+Components+Proposal+for+JIRA",
+        title="""
+JSON representation of systems, subsystems and components hierarchy
+ on the OBS jira project. An example of a valid payload is:
+
+    {
+        "name": "AuxTel",
+        "children": [
+            {
+                "name": "Dome",
+                "children": [
+                    {
+                        "name": "AT Azimuth Drives"
+                    }
+                ]
+            }
+        ]
+    }
+
+For a full list of valid systems, subsystems and components please refer to: """
+        f"""{JIRA_OBS_SYSTEMS_HIERARCHY_MARKDOWN_LINK}.""",
     )
 
     class Config:
