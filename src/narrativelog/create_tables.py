@@ -8,7 +8,7 @@ import uuid
 
 import sqlalchemy as sa
 import sqlalchemy.types as saty
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 # Length of the site_id field.
 SITE_ID_LEN = 16
@@ -60,8 +60,14 @@ def create_message_table(metadata: sa.MetaData) -> sa.Table:
         sa.Column("date_invalidated", saty.DateTime(), nullable=True),
         sa.Column("parent_id", UUID(as_uuid=True), nullable=True),
         # Added 2022-07-19
+        # 'systems' field is deprecated and will be removed in v1.0.0.
+        # Please use 'components_json' instead
         sa.Column("systems", saty.ARRAY(sa.Text), nullable=True),
+        # 'subsystems' field is deprecated and will be removed in v1.0.0.
+        # Please use 'components_json' instead
         sa.Column("subsystems", saty.ARRAY(sa.Text), nullable=True),
+        # 'cscs' field is deprecated and will be removed in v1.0.0.
+        # Please use 'components_json' instead
         sa.Column("cscs", saty.ARRAY(sa.Text), nullable=True),
         # Added 2022-07-37
         sa.Column("date_end", saty.DateTime(), nullable=True),
@@ -110,10 +116,18 @@ def create_jira_fields_table(metadata: sa.MetaData) -> sa.Table:
         sa.Column(
             "id", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
         ),
+        # Added 2024-12-16
+        sa.Column("components_json", JSONB, nullable=True),
+        # 'components' field is deprecated and will be removed in v1.0.0.
+        # Please use 'components_json' instead
         sa.Column("components", saty.ARRAY(sa.Text), nullable=True),
+        # 'primary_software_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_json' instead
         sa.Column(
             "primary_software_components", saty.ARRAY(sa.Text), nullable=True
         ),
+        # 'primary_hardware_components' field is deprecated
+        #  and will be removed in v1.0.0. Please use 'components_json' instead
         sa.Column(
             "primary_hardware_components", saty.ARRAY(sa.Text), nullable=True
         ),

@@ -85,6 +85,11 @@ class EditMessageTestCase(unittest.IsolatedAsyncioTestCase):
                     "new primary_hardware_component 1",
                     "new primary_hardware_component 2",
                 ],
+                components_json={
+                    "systems": ["new system 1", "new system 2"],
+                    "subsystems": ["new subsystem 1", "new subsystem 2"],
+                    "components": ["new component 1", "new component 2"],
+                },
                 category="New category",
                 time_lost_type=random.choice(["fault", "weather"]),
                 date_begin="2024-01-01T00:00:00",

@@ -10,6 +10,7 @@ from .routers import (
     find_messages,
     get_configuration,
     get_message,
+    get_version,
 )
 
 app = fastapi.FastAPI()
@@ -27,6 +28,7 @@ subapp.include_router(edit_message.router)
 subapp.include_router(find_messages.router)
 subapp.include_router(get_configuration.router)
 subapp.include_router(get_message.router)
+subapp.include_router(get_version.router)
 
 
 @subapp.get("/", response_class=fastapi.responses.HTMLResponse)
