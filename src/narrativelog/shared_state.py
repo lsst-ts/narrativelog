@@ -4,7 +4,7 @@ __all__ = ["create_shared_state", "delete_shared_state", "get_shared_state"]
 
 import logging
 import os
-import urllib
+import urllib.parse
 
 import sqlalchemy as sa
 

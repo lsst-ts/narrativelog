@@ -9,7 +9,9 @@ import logging
 
 import sqlalchemy as sa
 
-from alembic import op
+# Use type: ignore because alembic.context is only available for env.py
+# when it is executed through the alembic command.
+from alembic import op  # type: ignore
 
 # revision identifiers, used by Alembic.
 revision = "49ef39173f83"
