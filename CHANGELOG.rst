@@ -2,6 +2,17 @@
 Change Log
 ==========
 
+0.7.1
+-----
+
+* Added sqlalchemy pool_pre_ping option to avoid idle connections and made package configuration updates.
+
+0.7.0
+-----
+
+* Added new components_json field to the jira_fields table.
+* Moved image push from public lsstsqre dockerhub to lsst-ts GHCR.
+
 0.6.1
 -----
 

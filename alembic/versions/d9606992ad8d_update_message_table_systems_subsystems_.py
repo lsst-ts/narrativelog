@@ -7,7 +7,9 @@ Create Date: 2023-09-11 17:44:07.705399
 """
 import logging
 
-from alembic import op
+# Use type: ignore because alembic.context is only available for env.py
+# when it is executed through the alembic command.
+from alembic import op  # type: ignore
 
 # revision identifiers, used by Alembic.
 revision = "d9606992ad8d"
@@ -18,7 +20,7 @@ depends_on = None
 MESSAGE_TABLE_NAME = "message"
 
 
-def upgrade(log: logging.Logger, table_names: set[str]):
+def upgrade(log: logging.Logger, table_names: set[str]) -> None:
     if MESSAGE_TABLE_NAME not in table_names:
         log.info(f"No {MESSAGE_TABLE_NAME} table; nothing to do")
         return
@@ -29,7 +31,7 @@ def upgrade(log: logging.Logger, table_names: set[str]):
     op.alter_column(MESSAGE_TABLE_NAME, "cscs", nullable=True)
 
 
-def downgrade(log: logging.Logger, table_names: set[str]):
+def downgrade(log: logging.Logger, table_names: set[str]) -> None:
     if MESSAGE_TABLE_NAME not in table_names:
         log.info(f"No {MESSAGE_TABLE_NAME} table; nothing to do")
         return
